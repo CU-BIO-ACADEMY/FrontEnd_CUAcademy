@@ -1,7 +1,7 @@
 "use client"
 import React, {useState, useEffect} from "react"
 import { motion } from "motion/react"
-import { links } from '@/variable/navigate'
+import { Sidelinks } from '@/variable/navigate'
 import { useRouter, usePathname } from 'next/navigation'
 import { Button, Divider } from "@heroui/react"
 
@@ -11,7 +11,7 @@ const Sidebar = () => {
     const [activeIndex, setActiveIndex] = useState(0)
 
     useEffect(() => {
-        const index = links.findIndex(item => item.link === pathname)
+        const index = Sidelinks.findIndex(item => item.link === pathname)
         if (index !== -1) {
             setActiveIndex(index)
         }
@@ -30,7 +30,7 @@ const Sidebar = () => {
                 className={` flex flex-col w-full h-full items-center justify-between py-2`}
             >
                 <div className={`w-full flex flex-col gap-2 px-4 relative`}>
-                    { links.map((item, index) => (
+                    { Sidelinks.map((item, index) => (
                         <div
                             onClick={() => {
                                 router.push(item.link)
@@ -45,7 +45,7 @@ const Sidebar = () => {
                     <div
                         className={` absolute top-0 w-[calc(100%-2rem)] duration-600 h-12 bg-[var(--pink1)] rounded-md transition-all`}
                         style={{
-                            transform: `translateY(${activeIndex * (48 + 8)}px)` // 48px height + 8px gap
+                            transform: `translateY(${activeIndex * (48 + 8)}px)`
                         }}
                     ></div>
                 </div>
