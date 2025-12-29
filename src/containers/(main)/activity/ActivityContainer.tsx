@@ -4,7 +4,7 @@ import { ActivityCard } from "@/components/(main)/activity/ActCard"
 
 export default function ActivityContainer() {
     return (
-        <div className={`h-full w-full overflow-auto p-4 relative`}>
+        <div className={`h-full w-full overflow-auto relative`}>
             <div className={`flex justify-between`}>
                 <h3 className="text-3xl">กิจกรรม</h3>
                 <div className={`flex gap-2`}>

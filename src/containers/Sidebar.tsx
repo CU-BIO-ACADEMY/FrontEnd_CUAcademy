@@ -11,7 +11,7 @@ const Sidebar = () => {
     const [activeIndex, setActiveIndex] = useState(0)
 
     useEffect(() => {
-        const index = Sidelinks.findIndex(item => item.link === pathname)
+        const index = Sidelinks.findIndex(item => item.link.includes(pathname))
         if (index !== -1) {
             setActiveIndex(index)
         }

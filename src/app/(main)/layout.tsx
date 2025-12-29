@@ -11,7 +11,7 @@ export default function MainLayout({children}:{children:ReactNode}){
                     <div className={` hidden lg:flex`}>
                         <SideBar />
                     </div>
-                    <div className={`grow overflow-auto`}>
+                    <div className={`grow overflow-auto p-4`}>
                         {children}
                     </div>
                 </div>

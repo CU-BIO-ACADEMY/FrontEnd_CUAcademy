@@ -6,7 +6,7 @@ import { Image } from '@heroui/react';
 
 export function BannerSlide({ images }: {images:string[]}) {
     return (
-        <div className='w-full h-full p-4'>
+        <div className='w-full h-full'>
             <Splide 
                 className='h-auto max-h-60 w-full rounded-md overflow-hidden' 
                 options={{ 

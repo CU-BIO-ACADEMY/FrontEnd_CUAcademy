@@ -53,7 +53,7 @@ export function ActivityCard({id, title, image, date, desc, amount, maxCapacity,
                 </CardFooter>
             </Card>
             {isNew && (
-                <Chip size={`sm`} color="danger" variant="shadow" className={` absolute -top-2 -right-2 z-10`}>NEW</Chip>
+                <Chip size={`sm`} color="danger" variant="shadow" className={` absolute -top-2 sm:-right-2 z-10`}>NEW</Chip>
             )}
         </div>
     )
