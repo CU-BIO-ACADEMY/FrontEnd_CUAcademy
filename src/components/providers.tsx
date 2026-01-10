@@ -2,7 +2,13 @@
 
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 export const LayoutProviders = ({ children }: { children: ReactNode }) => {
-    return <AuthProvider>{children}</AuthProvider>;
+    return (
+        <AuthProvider>
+            <Toaster />
+            {children}
+        </AuthProvider>
+    );
 };

@@ -1,9 +1,5 @@
-import React from "react"
+import { PaymentContainer } from "@/containers/(main)/payment/PaymentContainer";
 
 export default function Payment() {
-  return (
-    <>
-        Payment
-    </>
-  );
+    return <PaymentContainer />;
 }
