@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const refreshUser = async () => {
         try {
             const currentUser = await api.authService.getUser();
+
             setUser(currentUser);
         } catch (error: any) {
             if (error?.status === 401) {

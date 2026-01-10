@@ -9,8 +9,10 @@ import { Navlinks } from '@/variable/navigate'
 import { Fade as Hamburger } from 'hamburger-react'
 import { useRouter } from 'next/navigation'
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem} from "@heroui/react";
+import { useAuth } from "@/hooks/useAuth"
 
 const Navbar = () => {
+    const { user } = useAuth()
     const [login, setLogin] = useState(true)
     const [openDropdown, setOpenDropdown] = useState<number | null>(null)
     const [openHam, setOpenHam] = useState(false)
@@ -56,10 +58,10 @@ const Navbar = () => {
                     ))}
                 </div>
                 <div className={`flex md:gap-4 items-center`}>
-                    { login ? (
+                    { user ? (
                         <>
                             <Button size="sm" radius="sm" className={`border-2 border-(--pink2) bg-(--pink1) text-gray-600 flex items-center gap-1`}>
-                                <i className="fa-duotone fa-solid fa-credit-card"></i> 200
+                                <i className="fa-duotone fa-solid fa-credit-card"></i>{user.balance}
                             </Button>
                             <Avatar src="" alt={`avatar`} isBordered size="sm" onClick={() => console.log("Nano")}
                                 classNames={{
