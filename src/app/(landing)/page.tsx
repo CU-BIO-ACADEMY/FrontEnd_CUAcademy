@@ -1,20 +1,15 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@heroui/react";
 
 export default function Landing() {
-    const { user, loading, login, logout } = useAuth();
-
-    if (loading) return <div>Loading...</div>;
-
-    if (!user) {
-        return <button onClick={login}>Login ด้วย Google</button>;
-    }
+    const { login } = useAuth();
 
     return (
-        <div>
-            <p>สวัสดี {user.username}</p>
-            <button onClick={logout}>Logout</button>
-        </div>
+        <Button onPress={login} className=" text-white bg-blue-600 hover:bg-blue-700 ">
+            <i className="fa-brands fa-google text-xl"></i>
+            <span>เข้าสู่ระบบด้วย Google</span>
+        </Button>
     );
 }

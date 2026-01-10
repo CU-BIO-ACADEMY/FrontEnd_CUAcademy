@@ -2,7 +2,7 @@
 
 import { AuthContext } from "@/contexts/AuthContext";
 import { api } from "@/services";
-import { User } from "@/services/api/AuthService";
+import { User } from "@/types/user";
 import { ReactNode, useEffect, useState } from "react";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -13,9 +13,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             const currentUser = await api.authService.getUser();
             setUser(currentUser);
-        } catch (error) {
-            console.error("Error refreshing user:", error);
-            setUser(null);
+        } catch (error: any) {
+            if (error?.status === 401) {
+                setUser(null);
+            } else {
+                console.error("Error refreshing user:", error);
+                setUser(null);
+            }
         } finally {
             setLoading(false);
         }

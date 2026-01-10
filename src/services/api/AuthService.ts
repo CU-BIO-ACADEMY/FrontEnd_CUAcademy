@@ -1,10 +1,5 @@
+import { User } from "@/types/user";
 import { BaseService } from "./BaseService";
-
-export interface User {
-    id: string;
-    email: string;
-    username: string;
-}
 
 export class AuthService extends BaseService {
     constructor() {

@@ -7,6 +7,11 @@ export const authenticatedFetch = async (url: string, options: RequestInit) => {
     const responseData = await response.json();
 
     if (!response.ok) {
+        // if (response.status === 401) {
+        //     window.location.href = '/';
+        //     throw new Error('Unauthorized');
+        // }
+
         if (typeof responseData === "string") {
             const error = new Error(responseData || response.statusText);
             (error as any).status = response.status;
