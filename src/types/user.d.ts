@@ -1,6 +1,6 @@
 export interface User {
     id: string;
     email: string;
-    username: string;
-    balance: number
+    display_name: string;
+    balance: number;
 }

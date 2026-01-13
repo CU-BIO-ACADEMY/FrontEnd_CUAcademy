@@ -12,7 +12,7 @@ function ProfileContainer() {
                 <div className="w-60">
                     <ProfileCard
                         email={user?.email || ""}
-                        fullName={user?.username || ""}
+                        fullName={user?.display_name || ""}
                         tag={["Nano", "fffff", "awdv"]}
                     />
                 </div>
