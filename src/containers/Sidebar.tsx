@@ -31,16 +31,18 @@ const Sidebar = () => {
             >
                 <div className={`w-full flex flex-col gap-2 px-4 relative`}>
                     { Sidelinks.map((item, index) => (
-                        <div
-                            onClick={() => {
+                        <Button
+                            onPress={() => {
                                 router.push(item.link)
                                 setActiveIndex(index)
                             }}
+                            variant="light"
+                            isDisabled={item.disable}
                             key={index}
-                            className={`w-full z-10 h-12 px-2 gap-2 cursor-pointer flex items-center rounded-md`}>
+                            className={`w-full z-10 h-12 px-2 gap-2 cursor-pointer flex items-center justify-start rounded-md`}>
                             <i className={`fa-regular text-xl transition-all ${item.icon} ${IsPath(item.link) ? 'text-black': 'text-[#57595b]'} `}></i>
                             <span className={`text-sm transition-all ${IsPath(item.link) ? 'text-black': 'text-[#57595b]'}`}>{item.title}</span>
-                        </div>
+                        </Button>
                     ))}
                     <div
                         className={` absolute top-0 w-[calc(100%-2rem)] duration-600 h-12 bg-(--pink1) rounded-md transition-all`}

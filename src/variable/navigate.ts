@@ -29,7 +29,7 @@ export const Sidelinks: SideLinkitem[] = [
         title: 'กิจกรรม',
         icon: 'fa-chart-network',
         link:'/activity',
-        disable: true,
+        disable: false,
     },
     {
         title: 'เกี่ยวกับเรา',
@@ -41,19 +41,19 @@ export const Sidelinks: SideLinkitem[] = [
         title: 'เติมเครดิต',
         icon: 'fa-credit-card',
         link:'/payment',
-        disable: true,
+        disable: false,
     },
     {
         title: 'ประวัติการทำธุรกรรม',
         icon: 'fa-clock',
         link:'/history',
-        disable: true,
+        disable: false,
     },
     {
         title: 'โปรไฟล์',
         icon: 'fa-user',
         link:'/profile',
-        disable: true,
+        disable: false,
     }
 ]
 
