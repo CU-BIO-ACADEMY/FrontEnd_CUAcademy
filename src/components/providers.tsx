@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 export const LayoutProviders = ({ children }: { children: ReactNode }) => {
     return (
         <AuthProvider>
-            <Toaster />
+            <Toaster richColors  />
             {children}
         </AuthProvider>
     );

@@ -34,7 +34,7 @@ export function ActivityCard({ activity, currentParticipants = 0 }: ActivityCard
                         width={`300`}
                         height={`200`}
                         radius="none"
-                        className={` object-cover w-full h-full`}
+                        className={` object-cover w-full h-full aspect-3/2`}
                     />
                 </CardHeader>
                 <CardBody className={`flex flex-col justify-between`}>
