@@ -1,25 +1,30 @@
 'use client'
 import { Card, CardBody, Avatar, Button, Chip } from "@heroui/react"
+import { Role } from "@/types/user"; 
 
 interface ProfileCardProps{
     image?: string;
     email: string;
     fullName: string;
     tag?: String[];
+    role: Role;
     resetPass?: () => void;
     editData?: () => void;
 }
 
-export function ProfileCard({ image, email, fullName, tag }: ProfileCardProps){
+export function ProfileCard({ image, email, fullName, tag, role }: ProfileCardProps){
     return(
         <Card radius='sm' className='w-full items-center ring ring-(--pink2) shadow-lg shadow-pink-200'>
             <CardBody className=' items-center gap-4'>
                 <div className='flex flex-col gap-1 items-center'>
-                    {image ? (
-                        <Avatar size='lg' src={image} />
-                    ):(
-                        <Avatar size='lg'  />
-                    )}
+                    <div>
+                        {image ? (
+                            <Avatar size='lg' src={image} />
+                        ):(
+                            <Avatar size='lg'  />
+                        )}
+                        <Chip>{role}</Chip>
+                    </div>
                     <div className='flex items-center flex-col'>
                         <p className=' text-lg'>{fullName}</p>
                         <p className=' text-xs text-gray-400'>{email}</p>

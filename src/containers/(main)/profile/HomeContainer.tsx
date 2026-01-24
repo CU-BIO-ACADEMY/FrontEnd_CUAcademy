@@ -2,6 +2,7 @@
 
 import { ProfileCard } from "@/components/(main)/profile/profileCard";
 import { useAuth } from "@/hooks/useAuth";
+import { Role } from "@/types/user";
 
 function ProfileContainer() {
     const { user } = useAuth();
@@ -14,6 +15,7 @@ function ProfileContainer() {
                         email={user?.email || ""}
                         fullName={user?.display_name || ""}
                         tag={["Nano", "fffff", "awdv"]}
+                        role={user?.role || Role.MEMBER}
                     />
                 </div>
                 <div className="flex grow bg-red-400 ">
