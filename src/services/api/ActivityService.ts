@@ -25,6 +25,8 @@ export interface Activity {
     event_start_at: string;
     registration_open_at: string;
     registration_close_at: string;
+    approved?: boolean;
+    users_registered?: number;
 }
 
 export class ActivityService extends BaseService {
@@ -49,5 +51,13 @@ export class ActivityService extends BaseService {
 
     async getAllActivities(): Promise<Activity[]> {
         return this.get<Activity[]>("/");
+    }
+
+    async getUnpublishedActivities(): Promise<Activity[]> {
+        return this.get<Activity[]>("/unpublished");
+    }
+
+    async approveActivity(id: string): Promise<void> {
+        return this.post(`/${id}/approve`, {});
     }
 }

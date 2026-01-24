@@ -50,6 +50,12 @@ export const Sidelinks: SideLinkitem[] = [
         disable: false,
     },
     {
+        title: 'จัดการระบบ',
+        icon: 'fa-shield-halved',
+        link:'/admin',
+        disable: false,
+    },
+    {
         title: 'โปรไฟล์',
         icon: 'fa-user',
         link:'/profile',
