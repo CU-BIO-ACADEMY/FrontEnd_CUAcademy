@@ -64,7 +64,7 @@ export const PaymentUploadContainer = () => {
                     />
                 </div>
             )}
-            <Button color="primary" className="w-full" onPress={handleUpload} isLoading={loading}>
+            <Button color="primary" className="w-full" isDisabled={!selectedFile} onPress={handleUpload} isLoading={loading}>
                 <i className="fa-solid fa-upload"></i>
                 ยืนยันการเติมเงิน
             </Button>

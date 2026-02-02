@@ -32,7 +32,7 @@ const Sidebar = () => {
     };
 
     return (
-        <div className={` min-w-54 max-w-54 h-full flex items-center bg-gray-100`}>
+        <div className={` min-w-54 max-w-54 h-full flex items-center bg-gray-100/20 z-10`}>
             <motion.div
                 initial={{ x: -60, opacity: 0 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
@@ -70,7 +70,12 @@ const Sidebar = () => {
                 </div>
                 <div className={`w-full px-4`}>
                     <Divider className="my-4" />
-                    <Button color="danger" variant="shadow" fullWidth onPress={logout}>
+                    <Button color="danger" variant="shadow" fullWidth
+                        onPress={() => {
+                            logout()
+                            router.replace("/");
+                        }}
+                    >
                         ออกจากระบบ
                     </Button>
                 </div>

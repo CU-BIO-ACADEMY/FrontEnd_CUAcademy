@@ -1,12 +1,12 @@
 'use client'
 import { Card, CardBody, Avatar, Button, Chip } from "@heroui/react"
-import { Role } from "@/types/user"; 
+import { Role } from "@/types/user";
 
 interface ProfileCardProps{
     image?: string;
     email: string;
     fullName: string;
-    tag?: String[];
+    tag?: string[];
     role: Role;
     resetPass?: () => void;
     editData?: () => void;
