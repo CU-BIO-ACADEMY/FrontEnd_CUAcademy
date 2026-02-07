@@ -42,9 +42,9 @@ function FormBody({
                             classNames={{wrapper:" w-full !max-w-none flex justify-center"}}
                         />
                     )}
-                    <Input 
-                        type="file" 
-                        accept="image/*" 
+                    <Input
+                        type="file"
+                        accept="image/*"
                         onChange={handleFileChange}
                         label="รูปภาพหลัก"
                         isRequired
@@ -83,7 +83,7 @@ function FormBody({
                         input: "text-gray-900",
                     }}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                     <NumberInput
                         label="จำนวนผู้เข้าร่วมสูงสุด"
                         name="max_users"
@@ -111,7 +111,7 @@ function FormBody({
                         }}
                     />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                     <DatePicker
                         label="วันที่เปิดรับสมัคร"
                         value={registrationOpenAt}

@@ -22,17 +22,17 @@ export const PaymentContainer = () => {
     };
 
     return (
-        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-pink-100 p-2 md:p-4">
+        <div className="h-full w-full flex items-center justify-center bg-linear-to-br from-pink-50 via-white to-pink-100 p-2 md:p-4">
             {/* Background decorative elements */}
 
             {/* Payment Card */}
             <Card className="relative z-10 w-full max-w-4xl bg-white/80 backdrop-blur-lg shadow-2xl border border-pink-100 rounded-2xl md:rounded-3xl">
                 {/* Header - แสดงเฉพาะมือถือ */}
                 <CardHeader className="flex md:hidden flex-col gap-2 items-center pt-4 pb-2">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-pink-300 rounded-xl flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 bg-linear-to-br from-pink-400 to-pink-300 rounded-xl flex items-center justify-center shadow-lg">
                         <i className="fa-solid fa-wallet text-white text-xl"></i>
                     </div>
-                    <h2 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
+                    <h2 className="text-xl font-bold bg-linear-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
                         เติมเงิน
                     </h2>
                 </CardHeader>
@@ -44,17 +44,17 @@ export const PaymentContainer = () => {
                         <div className="flex flex-col gap-3 md:gap-6 items-center md:w-1/2 w-full">
                             {/* Header - แสดงเฉพาะ desktop */}
                             <div className="hidden md:flex flex-col gap-3 items-center w-full">
-                                <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-300 rounded-2xl flex items-center justify-center shadow-lg">
+                                <div className="w-16 h-16 bg-linear-to-br from-pink-400 to-pink-300 rounded-2xl flex items-center justify-center shadow-lg">
                                     <i className="fa-solid fa-wallet text-white text-2xl"></i>
                                 </div>
-                                <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
+                                <h2 className="text-2xl font-bold bg-linear-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
                                     เติมเงิน
                                 </h2>
                             </div>
 
                             {/* QR Code */}
                             <div className="relative">
-                                <div className="p-1 bg-gradient-to-br from-pink-400 to-pink-300 rounded-xl md:rounded-2xl shadow-lg">
+                                <div className="p-1 bg-linear-to-br from-pink-400 to-pink-300 rounded-xl md:rounded-2xl shadow-lg">
                                     <div className="bg-white p-3 md:p-5 rounded-lg md:rounded-xl">
                                         <QRCodeSVG
                                             value={qrCode}
@@ -72,14 +72,14 @@ export const PaymentContainer = () => {
                             {/* Info Section */}
                             <div className="text-center bg-pink-50/50 rounded-xl p-3 md:p-4 w-full border border-pink-100">
                                 <p className="text-xs md:text-sm text-gray-500 mb-1">สแกน QR Code เพื่อโอนเงิน</p>
-                                <p className="text-base md:text-lg font-semibold bg-gradient-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
+                                <p className="text-base md:text-lg font-semibold bg-linear-to-r from-pink-500 to-pink-400 bg-clip-text text-transparent">
                                     {PROMPTPAY_NUMBER}
                                 </p>
                             </div>
                         </div>
 
                         {/* Divider - แสดงเฉพาะ desktop */}
-                        <div className="hidden md:block w-px bg-gradient-to-b from-transparent via-pink-200 to-transparent self-stretch"></div>
+                        <div className="hidden md:block w-px bg-linear-to-b from-transparent via-pink-200 to-transparent self-stretch"></div>
 
                         {/* Right Side - Input Section */}
                         <div className="flex flex-col gap-4 md:gap-6 w-full md:w-1/2">

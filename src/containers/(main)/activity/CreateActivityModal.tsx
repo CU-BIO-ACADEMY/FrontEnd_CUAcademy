@@ -46,7 +46,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
             return new Date(dateValue.year, dateValue.month - 1, dateValue.day, 0, 0);
         }
     };
-    
+
     const onSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -60,7 +60,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
             if (!data.max_users || !data.price) {
                 toast.error("โปรดกรอกข้อมูลให้ครบถ้วน");
                 return;
-            } 
+            }
 
             if (!registrationOpenAt || !registrationCloseAt || !eventStartAt) {
                 toast.error("โปรดกรอกวันที่ให้ครบถ้วน");
@@ -81,11 +81,11 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
             console.log(finalData)
             await api.activityService.createActivity(finalData);
             toast.success("สร้างกิจกรรมสำเร็จ");
-            
+
             handleClose();
             onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || "เกิดข้อผิดพลาดในการสร้างกิจกรรม");
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการสร้างกิจกรรม")
         } finally {
             setIsLoading(false);
         }
@@ -119,7 +119,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
                         <h3 className="text-2xl font-semibold text-(--pink2)">เพิ่มกิจกรรมใหม่</h3>
                     </ModalHeader>
                         <ModalBody className="py-6">
-                            <FormBody 
+                            <FormBody
                                 thumbnailPreview={thumbnailPreview}
                                 handleFileChange={handleFileChange}
                                 registrationOpenAt={registrationOpenAt}

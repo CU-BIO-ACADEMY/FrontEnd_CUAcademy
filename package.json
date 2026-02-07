@@ -10,17 +10,22 @@
   },
   "dependencies": {
     "@heroui/react": "^2.8.5",
+    "@hookform/resolvers": "^5.2.2",
     "@splidejs/react-splide": "^0.7.12",
     "dayjs": "^1.11.19",
     "framer-motion": "^12.23.26",
     "hamburger-react": "^2.5.2",
+    "lucide-react": "^0.563.0",
     "motion": "^12.23.26",
     "next": "16.0.8",
     "promptpay-qr": "^0.5.0",
     "qrcode.react": "^4.2.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "sonner": "^2.0.7"
+    "react-hook-form": "^7.71.1",
+    "sonner": "^2.0.7",
+    "swr": "^2.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

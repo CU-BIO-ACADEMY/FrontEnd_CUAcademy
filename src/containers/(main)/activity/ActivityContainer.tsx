@@ -17,8 +17,8 @@ export default function ActivityContainer() {
             setIsLoading(true);
             const data = await api.activityService.getAllActivities();
             setActivities(data);
-        } catch (error: any) {
-            toast.error(error.message || "เกิดข้อผิดพลาดในการโหลดกิจกรรม");
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการโหลดกิจกรรม")
         } finally {
             setIsLoading(false);
         }

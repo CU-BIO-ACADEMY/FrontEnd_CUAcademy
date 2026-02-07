@@ -1,50 +1,84 @@
 'use client'
-import { Card, CardBody, Avatar, Button, Chip } from "@heroui/react"
+import {
+    User,
+    Mail,
+    Phone,
+    MapPin,
+    Calendar,
+    Shield,
+} from "lucide-react";
 import { Role } from "@/types/user";
+import type { User as UserType } from "@/types/user";
 
-interface ProfileCardProps{
-    image?: string;
-    email: string;
-    fullName: string;
-    tag?: string[];
-    role: Role;
-    resetPass?: () => void;
-    editData?: () => void;
+interface ProfileCardProps {
+    user: UserType | null;
 }
 
-export function ProfileCard({ image, email, fullName, tag, role }: ProfileCardProps){
-    return(
-        <Card radius='sm' className='w-full items-center ring ring-(--pink2) shadow-lg shadow-pink-200'>
-            <CardBody className=' items-center gap-4'>
-                <div className='flex flex-col gap-1 items-center'>
-                    <div>
-                        {image ? (
-                            <Avatar size='lg' src={image} />
-                        ):(
-                            <Avatar size='lg'  />
-                        )}
-                        <Chip>{role}</Chip>
-                    </div>
-                    <div className='flex items-center flex-col'>
-                        <p className=' text-lg'>{fullName}</p>
-                        <p className=' text-xs text-gray-400'>{email}</p>
-                    </div>
+export function ProfileCard({ user }: ProfileCardProps) {
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                    ข้อมูลส่วนตัวของบัญชีนี้
+                </h2>
+                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    Edit
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <User className="w-4 h-4" />
+                        ชื่อ - นามสกุล
+                    </label>
+                    <p className="text-gray-900 pl-6">{user?.display_name || "Not set"}</p>
                 </div>
-                {tag && (
-                    <div className='flex flex-col gap-2 w-3/4 justify-center items-center'>
-                        <span className="text-sm text-gray-600">interest:</span>
-                        <div className="w-full flex flex-wrap whitespace-break-spaces gap-2 justify-center">
-                            {tag.map((item, index) => (
-                                <Chip className=" bg-(--pink1)" size="sm" key={index}>{item}</Chip>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                <div className='w-full flex gap-2'>
-                    <Button radius='sm' className='flex-1'>แก้ไขรหัสผ่าน</Button>
-                    <Button radius='sm' variant='shadow' color='warning' className='flex-1'>แก้ไขข้อมูล</Button>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        Email
+                    </label>
+                    <p className="text-gray-900 pl-6">{user?.email || "Not set"}</p>
                 </div>
-            </CardBody>
-        </Card>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        เบอร์โทร
+                    </label>
+                    <p className="text-gray-900 pl-6">+66 XX XXX XXXX</p>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        Location
+                    </label>
+                    <p className="text-gray-900 pl-6">Bangkok, Thailand</p>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        Member Since
+                    </label>
+                    <p className="text-gray-900 pl-6">January 2024</p>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                        <Shield className="w-4 h-4" />
+                        Role
+                    </label>
+                    <p className="text-gray-900 pl-6">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            {user?.role || Role.MEMBER}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
     )
 }

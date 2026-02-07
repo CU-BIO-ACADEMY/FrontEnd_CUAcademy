@@ -53,6 +53,10 @@ export class ActivityService extends BaseService {
         return this.get<Activity[]>("/");
     }
 
+    async getActivitiesByID(id: string): Promise<Activity>{
+        return this.get(`/${id}`);
+    }
+
     async getUnpublishedActivities(): Promise<Activity[]> {
         return this.get<Activity[]>("/unpublished");
     }
