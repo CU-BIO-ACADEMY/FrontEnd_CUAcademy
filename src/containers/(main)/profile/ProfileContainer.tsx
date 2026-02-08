@@ -1,72 +1,143 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ProfileCard } from "@/components/(main)/profile/profileCard";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@heroui/react";
 import {
-    Settings,
     UserPlus,
     Users
 } from "lucide-react";
-import { AddApplicantModal } from "@/components/(main)/profile/AddApplicantModal";
+import { AddApplicantModal, type ApplicantFormData } from "@/components/(main)/profile/AddApplicantModal";
 import { ApplicantCard } from "@/components/(main)/profile/ApplicantCard";
 import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
-
-interface Applicant {
-    id: string;
-    prefix: string;
-    studentName: string;
-    educationLevel: string;
-    schoolName: string;
-    parentName: string;
-    parentEmail: string;
-    backupEmail: string;
-    createdAt: string;
-    status?: "pending" | "approved" | "rejected";
-}
+import { api } from "@/services";
+import { Applicant, educationLevelMap, educationLevelReverseMap } from "@/types/applicant";
+import { toast } from "sonner";
 
 function ProfileContainer() {
     const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [applicants, setApplicants] = useState<Applicant[]>([]);
+    const [, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingApplicant, setEditingApplicant] = useState<Applicant | null>(null);
+    const [modalMode, setModalMode] = useState<"create" | "edit">("create");
 
-    // Mock data - replace with real data from API
-    const [applicants, setApplicants] = useState<Applicant[]>([
-        {
-            id: "1",
-            prefix: "เด็กหญิง",
-            studentName: "สมหญิง ใจดี",
-            educationLevel: "ม. 3",
-            schoolName: "โรงเรียนสาธิตจุฬาลงกรณ์มหาวิทยาลัย ฝ่ายมัธยม",
-            parentName: "นางสาวสมศรี ใจดี",
-            parentEmail: "somsri@email.com",
-            backupEmail: "somying@student.email.com",
-            createdAt: "15 มกราคม 2567",
-            status: "approved"
-        },
-        {
-            id: "2",
-            prefix: "นาย",
-            studentName: "สมชาย รักเรียน",
-            educationLevel: "ม. 5",
-            schoolName: "โรงเรียนเตรียมอุดมศึกษา",
-            parentName: "นายสมศักดิ์ รักเรียน",
-            parentEmail: "somsak@email.com",
-            backupEmail: "somchai@student.email.com",
-            createdAt: "20 มกราคม 2567",
-            status: "pending"
+    const fetchStudentInformation = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const exists = await api.studentInformationService.checkExists();
+            if (exists.exists) {
+                const data = await api.studentInformationService.getStudentInformation();
+                const applicant: Applicant = {
+                    id: data.id,
+                    prefix: data.prefix,
+                    studentName: data.full_name,
+                    educationLevel: educationLevelReverseMap[data.education_level],
+                    schoolName: data.school,
+                    foodAllergy: data.food_allergies || undefined,
+                    parentName: data.parent_name,
+                    parentEmail: data.parent_email,
+                    backupEmail: data.secondary_email || "",
+                    createdAt: new Date(data.created_at).toLocaleDateString("th-TH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    }),
+                };
+                setApplicants([applicant]);
+            }
+        } catch {
+            // No student information yet, that's okay
+        } finally {
+            setIsLoading(false);
         }
-    ]);
+    }, []);
 
-    const handleDeleteApplicant = (id: string) => {
+    useEffect(() => {
+        fetchStudentInformation();
+    }, [fetchStudentInformation]);
+
+    const handleSubmitApplicant = async (formData: ApplicantFormData) => {
+        setIsSubmitting(true);
+        try {
+            const exists = await api.studentInformationService.checkExists();
+
+            const payload = {
+                prefix: formData.prefix,
+                full_name: formData.studentName,
+                education_level: educationLevelMap[formData.educationLevel],
+                school: formData.schoolName,
+                food_allergies: formData.foodAllergy || undefined,
+                parent_name: formData.parentName,
+                parent_email: formData.parentEmail,
+                secondary_email: formData.backupEmail || undefined,
+            };
+
+            if (exists.exists) {
+                await api.studentInformationService.updateStudentInformation(payload);
+                toast.success("อัพเดทข้อมูลผู้สมัครสำเร็จ");
+            } else {
+                await api.studentInformationService.createStudentInformation(payload);
+                toast.success("สร้างข้อมูลผู้สมัครสำเร็จ");
+            }
+
+            await fetchStudentInformation();
+        } catch (error) {
+            toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            throw error;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteApplicant = async (id: string) => {
         if (confirm("คุณต้องการลบข้อมูลผู้สมัครนี้หรือไม่?")) {
-            setApplicants(prev => prev.filter(app => app.id !== id));
+            try {
+                await api.studentInformationService.deleteStudentInformation();
+                setApplicants([]);
+                toast.success("ลบข้อมูลผู้สมัครสำเร็จ");
+            } catch {
+                toast.error("เกิดข้อผิดพลาดในการลบข้อมูล");
+            }
         }
     };
 
     const handleEditApplicant = (applicant: Applicant) => {
-        // Open modal with pre-filled data
+        setEditingApplicant(applicant);
+        setModalMode("edit");
         setIsModalOpen(true);
-        // You can add logic to populate the form with existing data
+    };
+
+    const handleOpenCreateModal = () => {
+        setEditingApplicant(null);
+        setModalMode("create");
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingApplicant(null);
+    };
+
+    // Convert Applicant to form default values
+    const getEditDefaultValues = (): Partial<ApplicantFormData> | undefined => {
+        if (!editingApplicant) return undefined;
+        
+        const useUserEmail = editingApplicant.parentEmail === user?.email && 
+                            editingApplicant.backupEmail === user?.email;
+        
+        return {
+            prefix: editingApplicant.prefix,
+            studentName: editingApplicant.studentName,
+            educationLevel: editingApplicant.educationLevel,
+            schoolName: editingApplicant.schoolName,
+            foodAllergy: editingApplicant.foodAllergy || "",
+            parentName: editingApplicant.parentName,
+            parentEmail: editingApplicant.parentEmail,
+            backupEmail: editingApplicant.backupEmail,
+            useUserEmail,
+        };
     };
 
     return (
@@ -102,11 +173,11 @@ function ProfileContainer() {
                                 </div>
                                 <Button
                                     color="primary"
-                                    onPress={() => setIsModalOpen(true)}
+                                    onPress={handleOpenCreateModal}
                                     startContent={<UserPlus className="w-4 h-4" />}
                                     className="bg-gradient-to-r from-pink-400 to-pink-300 font-medium"
                                 >
-                                    เพิ่มผู้สมัคร
+                                    {applicants.length > 0 ? "แก้ไขข้อมูล" : "เพิ่มผู้สมัคร"}
                                 </Button>
                             </div>
 
@@ -123,7 +194,7 @@ function ProfileContainer() {
                                     </p>
                                     <Button
                                         color="primary"
-                                        onPress={() => setIsModalOpen(true)}
+                                        onPress={handleOpenCreateModal}
                                         startContent={<UserPlus className="w-5 h-5" />}
                                         size="lg"
                                     >
@@ -150,8 +221,12 @@ function ProfileContainer() {
             {/* Add Applicant Modal */}
             <AddApplicantModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={handleCloseModal}
                 userEmail={user?.email}
+                onSubmit={handleSubmitApplicant}
+                isLoading={isSubmitting}
+                defaultValues={getEditDefaultValues()}
+                mode={modalMode}
             />
         </div>
     );
