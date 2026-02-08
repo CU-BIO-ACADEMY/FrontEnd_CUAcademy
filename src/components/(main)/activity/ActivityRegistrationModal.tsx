@@ -112,7 +112,7 @@ export function ActivityRegistrationModal({
             placement="center"
         >
             <ModalContent>
-                <ModalHeader className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-pink-50">
+                <ModalHeader className="flex items-center rounded-xl gap-3 bg-gradient-to-r from-blue-50 to-pink-50">
                     <GraduationCap className="w-6 h-6 text-pink-500" />
                     <div>
                         <h2 className="text-xl font-bold">สมัครกิจกรรม</h2>

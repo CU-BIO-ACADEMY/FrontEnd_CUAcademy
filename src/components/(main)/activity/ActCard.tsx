@@ -5,7 +5,7 @@ import { Progress } from "@heroui/progress";
 import { Divider } from "@heroui/divider";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useDisclosure } from "@heroui/react";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
 import type { Activity } from "@/services/api/ActivityService";
@@ -22,15 +22,11 @@ interface ActivityCardInterFace {
 export function ActivityCard({ activity, currentParticipants = 0, onRegisterSuccess }: ActivityCardInterFace) {
     const value = (currentParticipants / activity.max_users) * 100;
     const router = useRouter();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
 
     const isNew = dayjs().diff(dayjs(activity.registration_open_at), "day") < 3;
     const isFull = currentParticipants >= activity.max_users;
     const eventDate = dayjs(activity.event_start_at).format("DD/MM/YYYY");
-
-    const handleRegisterClick = () => {
-        setIsModalOpen(true);
-    };
 
     return (
         <div key={activity.id} className={`relative`}>
@@ -79,17 +75,8 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                     <Button
                         fullWidth
                         variant="shadow"
-                        className={` bg-(--pink2) text-white shadow-red-200`}
-                        onPress={handleRegisterClick}
-                        isDisabled={isFull}
-                    >
-                        {isFull ? "เต็มแล้ว" : "สมัคร"}
-                    </Button>
-                    <Button
-                        fullWidth
-                        variant="faded"
                         onPress={() => router.push(`/activity/${activity.id}`)}
-                        className={`text-(--pink2)`}
+                        className={`bg-(--pink2) text-white shadow-red-200`}
                     >
                         ข้อมูลเพิ่มเติม
                     </Button>
@@ -108,7 +95,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
 
             <ActivityRegistrationModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={onModalClose}
                 activityId={activity.id}
                 activityTitle={activity.title}
                 activityPrice={activity.price}

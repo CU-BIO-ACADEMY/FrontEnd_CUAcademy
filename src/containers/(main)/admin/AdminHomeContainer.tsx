@@ -1,39 +1,55 @@
 "use client";
-import { useState, useEffect } from "react";
 import { AdminActivityCard } from "@/components/(main)/activity/AdminActivityCard";
+import { AdminActivityTable } from "@/components/(main)/admin/AdminActivityTable";
 import { api } from "@/services";
-import type { Activity } from "@/services/api/ActivityService";
+import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
 import { toast } from "sonner";
+import useSWR from "swr";
 
 export const AdminHomeContainer = () => {
-    const [activities, setActivities] = useState<Activity[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const fetchUnpublishedActivities = async () => {
-        try {
-            setIsLoading(true);
-            const data = await api.activityService.getUnpublishedActivities();
-            setActivities(data);
-        } catch (error) {
+    const {
+        data: activities = [],
+        isLoading: isLoadingUnpublished,
+        mutate: mutateUnpublished,
+    } = useSWR("admin/unpublished", () => api.activityService.getUnpublishedActivities(), {
+        onError: (error) => {
             toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการโหลดกิจกรรม");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        },
+    });
 
-    useEffect(() => {
-        fetchUnpublishedActivities();
-    }, []);
+    const {
+        data: activitiesPB = [],
+        isLoading: isLoadingAll,
+        mutate: mutateAll,
+    } = useSWR("admin/all-activities", () => api.activityService.getAllActivities(), {
+        onError: (error) => {
+            toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการโหลดกิจกรรม");
+        },
+    });
+
+    const isLoading = isLoadingUnpublished || isLoadingAll;
 
     const handleApproveSuccess = () => {
-        fetchUnpublishedActivities();
+        mutateUnpublished();
+        mutateAll();
     };
 
     return (
-        <div className="h-full w-full overflow-auto">
+        <div className="h-full w-full overflow-auto sm:p-6">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-3xl">จัดการกิจกรรม</h3>
+                <h3 className="text-3xl font-bold">จัดการกิจกรรม</h3>
                 <div className="text-sm text-gray-600">{activities.length} กิจกรรมรออนุมัติ</div>
+            </div>
+
+            <ActivityStats stats={[
+                { label: "กิจกรรมที่เปิดตอนนี้", value: activitiesPB.length, change: "" },
+                { label: "กิจกรรมรออนุมัติ", value: activities.length, change: "" },
+                { label: "จำนวนผู้ใช้", value: 12, change: "", changeColor: "text-blue-600" },
+                { label: "รายได้ทั้งหมด", value: 12, change: "", changeColor: "text-blue-600" },
+            ]} />
+
+            <div className=" text-xl pt-6 py-4 font-bold">
+                รายการรออนุมัติ
             </div>
 
             {isLoading ? (
@@ -55,6 +71,12 @@ export const AdminHomeContainer = () => {
                     ))}
                 </div>
             )}
+
+            <div className="text-xl pt-8 py-4 font-bold">
+                กิจกรรมทั้งหมด
+            </div>
+
+            <AdminActivityTable activities={activitiesPB} isLoading={isLoading} />
         </div>
     );
 };

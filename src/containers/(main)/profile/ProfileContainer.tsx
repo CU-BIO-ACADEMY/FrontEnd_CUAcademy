@@ -140,10 +140,10 @@ function ProfileContainer() {
     // Convert Applicant to form default values
     const getEditDefaultValues = (): Partial<ApplicantFormData> | undefined => {
         if (!editingApplicant) return undefined;
-        
-        const useUserEmail = editingApplicant.parentEmail === user?.email && 
+
+        const useUserEmail = editingApplicant.parentEmail === user?.email &&
                             editingApplicant.backupEmail === user?.email;
-        
+
         return {
             prefix: editingApplicant.prefix,
             studentName: editingApplicant.studentName,
@@ -158,7 +158,7 @@ function ProfileContainer() {
     };
 
     return (
-        <div className="min-h-screen overflow-y-auto p-6">
+        <div className="min-h-screen overflow-y-auto md:p-6">
             <div className="max-w-7xl mx-auto space-y-6 pb-8">
                 {/* Header Section */}
                 <div className="flex items-center justify-between">
@@ -166,9 +166,9 @@ function ProfileContainer() {
                 </div>
 
                 <ActivityStats stats={[
-                    { label: "Total Projects", value: 12, change: "+3 this month" },
-                    { label: "Tasks Completed", value: 48, change: "+12 this week" },
-                    { label: "Team Members", value: 8, change: "Active now", changeColor: "text-blue-600" },
+                    { label: "กิจกรรมที่เข้าร่วมทั้งหมด", value: 12, change: "+3 เดือนนี้" },
+                    { label: "จำนวน Credit", value: user?.balance || 0, change: "+12 เดือนนี้" },
+                    { label: "จำนวนข้อมูลผู้สมัคร", value: applicants.length, change: "", changeColor: "text-blue-600" },
                 ]} />
 
                 {/* Main Content */}
@@ -180,7 +180,7 @@ function ProfileContainer() {
                         <ProfileCard user={user} />
 
                         {/* Applicants Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
                                     <Users className="w-6 h-6 text-blue-600" />
@@ -194,7 +194,7 @@ function ProfileContainer() {
                                     startContent={<UserPlus className="w-4 h-4" />}
                                     className="bg-gradient-to-r from-pink-400 to-pink-300 font-medium"
                                 >
-                                    {applicants.length > 0 ? "แก้ไขข้อมูล" : "เพิ่มผู้สมัคร"}
+                                    เพิ่มผู้สมัคร
                                 </Button>
                             </div>
 

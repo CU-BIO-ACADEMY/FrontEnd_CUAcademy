@@ -171,7 +171,7 @@ export function AddApplicantModal({
                             {mode === "edit" ? "แก้ไขข้อมูลผู้สมัคร" : "เพิ่มข้อมูลผู้สมัคร"}
                         </h2>
                     </ModalHeader>
-                    <ModalBody className="py-6 w-full overflow-y-auto">
+                    <ModalBody className="py-6 w-full overflow-y-auto px-4 md:px-6">
                         <div className="space-y-6">
                             {/* Student Information Section */}
                             <Card className="bg-pink-50 border-pink-100">
@@ -330,7 +330,7 @@ export function AddApplicantModal({
                                             ข้อมูลผู้ปกครอง
                                         </h3>
                                     </div>
-
+                                    <span className="text-red-400 text-sm text-center">** หากเป็นผู้สมัครเองให้กรอกเป็นข้อมูลของตนเอง **</span>
                                     {/* Use User Email Checkbox */}
                                     {userEmail && (
                                         <Controller
@@ -340,7 +340,7 @@ export function AddApplicantModal({
                                                 <Checkbox
                                                     isSelected={field.value}
                                                     onValueChange={handleUseUserEmailChange}
-                                                    classNames={{ wrapper: "after:bg-pink-400" }}
+                                                    classNames={{ wrapper: "after:bg-pink-400", label:"text-sm md:text-base" }}
                                                 >
                                                     ใช้อีเมลของฉัน ({userEmail})
                                                 </Checkbox>

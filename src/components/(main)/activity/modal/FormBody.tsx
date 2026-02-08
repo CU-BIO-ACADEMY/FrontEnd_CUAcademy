@@ -78,9 +78,10 @@ function FormBody({
                     placeholder="กรอกรายละเอียดกิจกรรม"
                     isRequired
                     minRows={4}
+                    isClearable
                     classNames={{
                         label: "text-gray-700",
-                        input: "text-gray-900",
+                        input: "text-gray-900 resize-y min-h-[40px]",
                     }}
                 />
                 <div className="grid md:grid-cols-2 gap-4">

@@ -22,11 +22,13 @@ No test runner is currently configured.
 
 - **Next.js 16** (App Router) + **React 19** + **TypeScript** (strict)
 - **Tailwind CSS v4** (CSS-based config in `globals.css`, not `tailwind.config.*`)
-- **HeroUI v2** component library
+- **HeroUI v2** component library (Tailwind plugin at `src/app/hero.ts`, content source in `globals.css`)
 - **React Hook Form + Zod** for forms
 - **SWR** for data fetching
 - **Sonner** for toast notifications
 - **dayjs** for date handling
+- **Font Awesome Pro v7** for icons (loaded via CDN in root layout)
+- **Kanit** Google font (Thai/Latin)
 - **Bun** as package manager
 
 ## Architecture
@@ -43,8 +45,8 @@ src/components/(main)/activity/       → renders UI, receives props
 
 ### Route Groups
 
-- `(landing)` — unauthenticated pages (login)
-- `(main)` — authenticated pages with shared Navbar + Sidebar layout
+- `(landing)` — unauthenticated pages (login via Google OAuth)
+- `(main)` — authenticated pages with shared Navbar + Sidebar layout, wrapped in `AuthGuard`
 
 ### API Layer
 
@@ -55,20 +57,24 @@ import { api } from "@/services"
 
 await api.activityService.getAllActivities()
 await api.authService.logout()
+await api.studentInformationService.getStudentInformation()
+await api.paymentService...
+await api.transactionService...
 ```
 
-- Services live in `src/services/api/`, each extending `BaseService` (provides `get`, `post`, `put`, `patch`, `delete`)
-- Two fetch modes: `normalApiFetch` (JSON) and `formApiFetch` (FormData/file uploads)
+- Services live in `src/services/api/`, each extending `BaseService` (provides `get`, `post`, `put`, `patch`, `delete`, `postWithForm`)
+- Two fetch modes in `src/lib/api.ts`: `normalApiFetch` (JSON with Content-Type header) and `formApiFetch` (FormData/file uploads)
 - Auth is cookie-based (`credentials: "include"`), backend provides Google OAuth
-- Base URL: `NEXT_PUBLIC_API_URL` env var (default `http://localhost:8000`), API path: `/api`
+- Base URL: in production uses `/api` (relative), in development hardcoded to `http://localhost:8000/api` (set in `BaseService` constructor)
+- DTOs and response types are colocated in each service file (e.g., `Activity` interface is in `ActivityService.ts`, not in `src/types/`)
 
 ### Auth Flow
 
-`AuthProvider` → `AuthContext` → `useAuth()` hook → `AuthGuard` HOC protects routes. User session comes from `/api/auth/me`.
+`LayoutProviders` (`src/components/providers.tsx`) → `AuthProvider` (`src/providers/AuthProvider.tsx`) → `AuthContext` (`src/contexts/AuthContext.tsx`) → `useAuth()` hook (`src/hooks/useAuth.tsx`) → `AuthGuard` (`src/components/AuthGuard.tsx`) wraps the `(main)` layout. User session comes from `GET /api/auth/me`. Login redirects to Google OAuth URL from `GET /api/auth/google`.
 
 ### Styling
 
-Tailwind-first with custom CSS variables (`--primary`, `--pink1`, `--pink2`) defined in `globals.css`. HeroUI components for buttons, modals, inputs, tables, etc. Use `@/*` path alias for all imports.
+Tailwind-first with custom CSS variables (`--primary`, `--secondary`, `--pink1`, `--pink2`) defined in `globals.css`. HeroUI components for buttons, modals, inputs, tables, etc. Use `@/*` path alias for all imports. Icons use Font Awesome classes (e.g., `fa-solid fa-filter`).
 
 ### Forms
 
@@ -76,11 +82,11 @@ All forms use React Hook Form with Zod schemas and `Controller` components wrapp
 
 ### Key Types
 
-- `User` — id, email, display_name, balance, role (member/admin)
-- `Activity` — id, title, price, max_users, event dates, registration dates, approved status
-- `Transaction` — id, amount, balance_before/after, transaction_type (topup/payment)
-
-Types in `src/types/`. Zod schemas colocated with form components.
+- `User` (`src/types/user.ts`) — id, email, display_name, balance, role (member/admin via `Role` enum)
+- `Applicant` (`src/types/applicant.ts`) — student info with educationLevel maps
+- `Activity` (`src/services/api/ActivityService.ts`) — id, title, price, max_users, event/registration dates, approved status
+- `StudentInformation` (`src/services/api/StudentInformationService.ts`) — student profile linked to user
+- `Transaction` (`src/types/transaction.d.ts`) — id, amount, balance_before/after, transaction_type (topup/payment)
 
 ## Conventions
 
@@ -89,3 +95,4 @@ Types in `src/types/`. Zod schemas colocated with form components.
 - Use `api` singleton from `@/services` for all API calls — never raw fetch
 - Toast notifications via `toast.success()` / `toast.error()` from Sonner
 - Middleware (`middleware.ts`) redirects `/home`, `/about`, `/profile` → `/activity`
+- Dynamic route params in Next.js 16 are `Promise`-based: `params: Promise<{ id: string }>` — must be awaited

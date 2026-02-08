@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Role } from "@/types/user";
 import type { User as UserType } from "@/types/user";
+import { Button } from "@heroui/react";
 
 interface ProfileCardProps {
     user: UserType | null;
@@ -21,9 +22,9 @@ export function ProfileCard({ user }: ProfileCardProps) {
                 <h2 className="text-xl font-semibold text-gray-900">
                     ข้อมูลส่วนตัวของบัญชีนี้
                 </h2>
-                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    Edit
-                </button>
+                <Button variant="light" color="primary" >
+                    เพิ่มเบอร์ติดต่อ
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -45,11 +45,11 @@ export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProp
     const getStatusText = (status?: string) => {
         switch (status) {
             case "approved":
-                return "อนุมัติแล้ว";
+                return "มีกิจกรรมแล้ว";
             case "rejected":
-                return "ไม่อนุมัติ";
+                return "ยังไม่มีกิจกรรม";
             default:
-                return "รอดำเนินการ";
+                return "ยังไม่มีกิจกรรม";
         }
     };
 
