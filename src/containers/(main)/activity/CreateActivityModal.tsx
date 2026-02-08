@@ -74,9 +74,9 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
                 max_users: parseInt(data.max_users as string),
                 price: parseFloat(data.price as string),
                 thumbnail: thumbnail,
-                registration_open_at: toDate(registrationOpenAt),
-                registration_close_at: toDate(registrationCloseAt),
-                event_start_at: toDate(eventStartAt),
+                registration_open_at: toDate(registrationOpenAt).toISOString(),
+                registration_close_at: toDate(registrationCloseAt).toISOString(),
+                event_start_at: toDate(eventStartAt).toISOString(),
             }
             console.log(finalData)
             await api.activityService.createActivity(finalData);
