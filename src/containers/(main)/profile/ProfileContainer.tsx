@@ -10,6 +10,7 @@ import {
 import { AddApplicantModal, type ApplicantFormData } from "@/components/(main)/profile/AddApplicantModal";
 import { ApplicantCard } from "@/components/(main)/profile/ApplicantCard";
 import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { api } from "@/services";
 import { Applicant, educationLevelMap, educationLevelReverseMap } from "@/types/applicant";
 import { toast } from "sonner";
@@ -22,6 +23,9 @@ function ProfileContainer() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingApplicant, setEditingApplicant] = useState<Applicant | null>(null);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [deletingApplicantId, setDeletingApplicantId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchStudentInformation = useCallback(async () => {
         setIsLoading(true);
@@ -91,16 +95,29 @@ function ProfileContainer() {
         }
     };
 
-    const handleDeleteApplicant = async (id: string) => {
-        if (confirm("คุณต้องการลบข้อมูลผู้สมัครนี้หรือไม่?")) {
-            try {
-                await api.studentInformationService.deleteStudentInformation();
-                setApplicants([]);
-                toast.success("ลบข้อมูลผู้สมัครสำเร็จ");
-            } catch {
-                toast.error("เกิดข้อผิดพลาดในการลบข้อมูล");
-            }
+    const handleDeleteApplicant = (id: string) => {
+        setDeletingApplicantId(id);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await api.studentInformationService.deleteStudentInformation();
+            setApplicants([]);
+            toast.success("ลบข้อมูลผู้สมัครสำเร็จ");
+            setIsConfirmModalOpen(false);
+            setDeletingApplicantId(null);
+        } catch {
+            toast.error("เกิดข้อผิดพลาดในการลบข้อมูล");
+        } finally {
+            setIsDeleting(false);
         }
+    };
+
+    const handleCancelDelete = () => {
+        setIsConfirmModalOpen(false);
+        setDeletingApplicantId(null);
     };
 
     const handleEditApplicant = (applicant: Applicant) => {
@@ -227,6 +244,19 @@ function ProfileContainer() {
                 isLoading={isSubmitting}
                 defaultValues={getEditDefaultValues()}
                 mode={modalMode}
+            />
+
+            {/* Confirm Delete Modal */}
+            <ConfirmModal
+                isOpen={isConfirmModalOpen}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                title="ยืนยันการลบข้อมูล"
+                message="คุณต้องการลบข้อมูลผู้สมัครนี้หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้"
+                confirmText="ลบข้อมูล"
+                cancelText="ยกเลิก"
+                confirmColor="danger"
+                isLoading={isDeleting}
             />
         </div>
     );
