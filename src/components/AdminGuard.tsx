@@ -4,13 +4,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
-export const AuthGuard = ({ children }: { children: ReactNode }) => {
+export const AdminGuard = ({ children }: { children: ReactNode }) => {
     const { user, loading } = useAuth();
 
     const router = useRouter();
 
     useEffect(() => {
         if (!loading && !user) {
+            router.replace("/activity");
+        }
+
+        if (user && user.role !== "admin") {
             router.replace("/activity");
         }
     }, [user, loading, router]);

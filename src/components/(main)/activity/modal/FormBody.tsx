@@ -167,7 +167,7 @@ function FormBody({
                 <div className="flex flex-col gap-2">
                     <Input
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                        // accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
                         onChange={handleAttachmentsChange}
                         label="ไฟล์แนบ (สูงสุด 10 ไฟล์)"
                         variant="faded"

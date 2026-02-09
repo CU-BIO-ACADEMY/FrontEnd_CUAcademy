@@ -7,12 +7,20 @@ export interface Activity {
     description_short: string;
     max_users: number;
     price: number;
-    thumbnail_url: string;
-    users_registered: number;
-    approved: boolean;
     event_start_at: string;
     registration_open_at: string;
     registration_close_at: string;
+    users_registered: number;
+    thumbnail: string;
+    attachments: Attachment[];
+}
+
+export interface Attachment {
+    id: string;
+    filename: string;
+    mimetype: string;
+    size: number;
+    url: string;
 }
 
 export interface JoinActivityDTO {
@@ -72,5 +80,9 @@ export class ActivityService extends BaseService {
 
     async approveActivity(activityId: string): Promise<{ message: string }> {
         return this.post<{ message: string }>(`/${activityId}/approve`, {});
+    }
+
+    async getActivityById(activityId: string): Promise<Activity> {
+        return this.get<Activity>(`/${activityId}`);
     }
 }
