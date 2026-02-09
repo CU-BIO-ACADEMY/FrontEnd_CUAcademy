@@ -29,6 +29,7 @@ export interface CreateActivityDTO {
     registration_close_at: string;
     event_start_at: string;
     thumbnail: File;
+    attachments?: File[];
 }
 
 export class ActivityService extends BaseService {
@@ -55,6 +56,12 @@ export class ActivityService extends BaseService {
         formData.append("registration_close_at", data.registration_close_at);
         formData.append("event_start_at", data.event_start_at);
         formData.append("thumbnail", data.thumbnail);
+
+        if (data.attachments) {
+            data.attachments.forEach((file) => {
+                formData.append("attachments", file);
+            });
+        }
 
         return this.postWithForm<{ message: string }>("/", formData);
     }
