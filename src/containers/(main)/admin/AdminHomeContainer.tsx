@@ -8,7 +8,7 @@ import useSWR from "swr";
 
 export const AdminHomeContainer = () => {
     const {
-        data: activities = [],
+        data: activitiesUnpublished = [],
         isLoading: isLoadingUnpublished,
         mutate: mutateUnpublished,
     } = useSWR("admin/unpublished", () => api.activityService.getUnpublishedActivities(), {
@@ -18,7 +18,7 @@ export const AdminHomeContainer = () => {
     });
 
     const {
-        data: activitiesPB = [],
+        data: activitiesPublic = [],
         isLoading: isLoadingAll,
         mutate: mutateAll,
     } = useSWR("admin/all-activities", () => api.activityService.getAllActivities(), {
@@ -38,12 +38,12 @@ export const AdminHomeContainer = () => {
         <div className="h-full w-full overflow-auto sm:p-6">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-3xl font-bold">จัดการกิจกรรม</h3>
-                <div className="text-sm text-gray-600">{activities.length} กิจกรรมรออนุมัติ</div>
+                <div className="text-sm text-gray-600">{activitiesUnpublished.length} กิจกรรมรออนุมัติ</div>
             </div>
 
             <ActivityStats stats={[
-                { label: "กิจกรรมที่เปิดตอนนี้", value: activitiesPB.length, change: "" },
-                { label: "กิจกรรมรออนุมัติ", value: activities.length, change: "" },
+                { label: "กิจกรรมที่เปิดตอนนี้", value: activitiesPublic.length, change: "" },
+                { label: "กิจกรรมรออนุมัติ", value: activitiesUnpublished.length, change: "" },
                 { label: "จำนวนผู้ใช้", value: 12, change: "", changeColor: "text-blue-600" },
                 { label: "รายได้ทั้งหมด", value: 12, change: "", changeColor: "text-blue-600" },
             ]} />
@@ -56,13 +56,13 @@ export const AdminHomeContainer = () => {
                 <div className="mt-8 flex justify-center items-center">
                     <div className="text-gray-500">กำลังโหลดกิจกรรม...</div>
                 </div>
-            ) : activities.length === 0 ? (
+            ) : activitiesUnpublished.length === 0 ? (
                 <div className="mt-8 flex justify-center items-center">
                     <div className="text-gray-500">ไม่มีกิจกรรมรออนุมัติ</div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 min-[540px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {activities.map((activity) => (
+                    {activitiesUnpublished.map((activity) => (
                         <AdminActivityCard
                             key={activity.id}
                             activity={activity}
@@ -76,7 +76,7 @@ export const AdminHomeContainer = () => {
                 กิจกรรมทั้งหมด
             </div>
 
-            <AdminActivityTable activities={activitiesPB} isLoading={isLoading} />
+            <AdminActivityTable activities={activitiesPublic} isLoading={isLoading} onApproveSuccess={handleApproveSuccess} />
         </div>
     );
 };

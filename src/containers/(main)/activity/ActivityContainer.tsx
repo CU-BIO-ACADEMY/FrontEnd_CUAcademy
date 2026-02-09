@@ -60,7 +60,7 @@ export default function ActivityContainer() {
                 </div>
             ) : (
                 <div
-                    className={` mt-8 grid grid-cols-1 min-[540px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 `}
+                    className={` mt-8 grid grid-cols-1 min-[540px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4  px-2`}
                 >
                     {activities.map((activity) => (
                         <ActivityCard

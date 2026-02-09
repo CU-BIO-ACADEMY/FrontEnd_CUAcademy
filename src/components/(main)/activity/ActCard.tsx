@@ -30,7 +30,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
 
     return (
         <div key={activity.id} className={`relative`}>
-            <Card radius={`sm`} className={` h-full`}>
+            <Card radius={`sm`} className={` h-full `}>
                 <CardHeader className={`h-[140px] overflow-hidden px-0 py-0`}>
                     <Image
                         src={activity.thumbnail_url}

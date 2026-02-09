@@ -23,8 +23,8 @@ function SlugContainer({ id }: SlugContainer) {
     return (
         <>
             <div className='flex flex-col gap-2'>
-                <Image src={`https://i.pinimg.com/474x/7c/b7/dd/7cb7ddaaab0cb10a19286876ec56b060.jpg`} alt='banner' classNames={{wrapper:'max-w-none!'}} className='w-full aspect-6/1 object-cover'/>
-                <div className='flex gap-3'>
+                <Image src={`https://i.pinimg.com/474x/7c/b7/dd/7cb7ddaaab0cb10a19286876ec56b060.jpg`} alt='banner' classNames={{wrapper:'max-w-none!'}} className='w-full aspect-4/1 md:aspect-6/1 object-cover'/>
+                <div className='flex md:flex-row flex-col gap-3'>
                     <div className='flex-1'>
                         <AvatarCard
                             id={id}

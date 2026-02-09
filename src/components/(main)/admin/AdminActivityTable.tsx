@@ -17,12 +17,15 @@ import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
 import type { Activity } from "@/services/api/ActivityService";
+import { api } from "@/services";
+import { toast } from "sonner";
 
 dayjs.locale("th");
 
 interface AdminActivityTableProps {
     activities: Activity[];
     isLoading?: boolean;
+    onApproveSuccess?: () => void;
 }
 
 type StatusFilter = "all" | "approved" | "pending";
@@ -38,11 +41,25 @@ const columns = [
 
 const ROWS_PER_PAGE = 10;
 
-export function AdminActivityTable({ activities, isLoading = false }: AdminActivityTableProps) {
+export function AdminActivityTable({ activities, isLoading = false, onApproveSuccess }: AdminActivityTableProps) {
     const router = useRouter();
     const [filterValue, setFilterValue] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
     const [page, setPage] = useState(1);
+    const [approvingId, setApprovingId] = useState<string | null>(null);
+
+    const handleApprove = async (activityId: string) => {
+        try {
+            setApprovingId(activityId);
+            await api.activityService.approveActivity(activityId);
+            toast.success("อนุมัติกิจกรรมสำเร็จ");
+            onApproveSuccess?.();
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอนุมัติกิจกรรม");
+        } finally {
+            setApprovingId(null);
+        }
+    };
 
     const filteredActivities = useMemo(() => {
         let filtered = [...activities];
@@ -79,29 +96,41 @@ export function AdminActivityTable({ activities, isLoading = false }: AdminActiv
         setPage(1);
     }, []);
 
-    const renderCell = useCallback(
-        (activity: Activity, columnKey: React.Key) => {
-            switch (columnKey) {
-                case "title":
-                    return <span className="font-medium">{activity.title}</span>;
-                case "status":
-                    return (
-                        <Chip
-                            color={activity.approved ? "success" : "warning"}
-                            variant="flat"
-                            size="sm"
-                        >
-                            {activity.approved ? "อนุมัติแล้ว" : "รออนุมัติ"}
-                        </Chip>
-                    );
-                case "event_date":
-                    return dayjs(activity.event_start_at).format("DD/MM/YYYY");
-                case "participants":
-                    return `${activity.users_registered}/${activity.max_users}`;
-                case "price":
-                    return `${activity.price} ฿`;
-                case "actions":
-                    return (
+    const renderCell = (activity: Activity, columnKey: React.Key) => {
+        switch (columnKey) {
+            case "title":
+                return <span className="font-medium">{activity.title}</span>;
+            case "status":
+                return (
+                    <Chip
+                        color={activity.approved ? "success" : "warning"}
+                        variant="flat"
+                        size="sm"
+                    >
+                        {activity.approved ? "อนุมัติแล้ว" : "รออนุมัติ"}
+                    </Chip>
+                );
+            case "event_date":
+                return dayjs(activity.event_start_at).format("DD/MM/YYYY");
+            case "participants":
+                return `${activity.users_registered}/${activity.max_users}`;
+            case "price":
+                return `${activity.price} ฿`;
+            case "actions":
+                return (
+                    <div className="flex gap-2">
+                        {!activity.approved && (
+                            <Button
+                                size="sm"
+                                variant="shadow"
+                                className="bg-(--pink2) text-white shadow-red-200"
+                                isLoading={approvingId === activity.id}
+                                isDisabled={approvingId !== null}
+                                onPress={() => handleApprove(activity.id)}
+                            >
+                                อนุมัติ
+                            </Button>
+                        )}
                         <Button
                             size="sm"
                             variant="flat"
@@ -110,13 +139,12 @@ export function AdminActivityTable({ activities, isLoading = false }: AdminActiv
                         >
                             ดูรายละเอียด
                         </Button>
-                    );
-                default:
-                    return null;
-            }
-        },
-        [router]
-    );
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
     const topContent = useMemo(
         () => (

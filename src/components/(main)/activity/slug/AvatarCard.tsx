@@ -2,6 +2,7 @@ import React from 'react'
 import { Card, CardBody, CardFooter, useDisclosure, Button, Avatar } from '@heroui/react'
 import { Progress } from '@heroui/progress'
 import { ActivityRegistrationModal } from '@/components/(main)/activity/ActivityRegistrationModal';
+import { ShareModal } from '@/components/(main)/activity/ShareModal';
 
 interface AvatarCardProps{
     id: string,
@@ -14,6 +15,7 @@ interface AvatarCardProps{
 
 function AvatarCard({ id, img, title, regisNow, regisMax, isFull }: AvatarCardProps) {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    const { isOpen: isShareOpen, onOpen: onShareOpen, onClose: onShareClose } = useDisclosure();
     const percentage = regisMax > 0 ? (regisNow / regisMax) * 100 : 0;
 
     return (
@@ -60,7 +62,7 @@ function AvatarCard({ id, img, title, regisNow, regisMax, isFull }: AvatarCardPr
                     </div>
                 </CardBody>
 
-                <CardFooter className="px-5 pb-5 pt-0">
+                <CardFooter className="px-5 pb-5 pt-0 gap-2">
                     <Button
                         fullWidth
                         variant="shadow"
@@ -69,6 +71,15 @@ function AvatarCard({ id, img, title, regisNow, regisMax, isFull }: AvatarCardPr
                         isDisabled={isFull}
                     >
                         {isFull ? "เต็มแล้ว" : "สมัครเลย"}
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant="faded"
+                        onPress={onShareOpen}
+                        isIconOnly
+                        color='success'
+                    >
+                        <i className="fa-solid fa-share"></i>
                     </Button>
                 </CardFooter>
             </Card>
@@ -79,6 +90,13 @@ function AvatarCard({ id, img, title, regisNow, regisMax, isFull }: AvatarCardPr
                 activityId={id}
                 activityTitle=""
                 activityPrice={0}
+            />
+
+            <ShareModal
+                isOpen={isShareOpen}
+                onClose={onShareClose}
+                activityTitle={title}
+                activityId={id}
             />
         </>
     )
