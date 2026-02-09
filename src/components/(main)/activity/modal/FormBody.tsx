@@ -9,6 +9,11 @@ export interface ActivityFormData {
     price: string;
 }
 
+export interface AttachmentFile {
+    file: File;
+    name: string;
+}
+
 interface FormBodyProps {
     thumbnailPreview: string | null;
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,6 +23,9 @@ interface FormBodyProps {
     setRegistrationCloseAt: (date: DateValue | null) => void;
     eventStartAt: DateValue | null;
     setEventStartAt: (date: DateValue | null) => void;
+    attachments: AttachmentFile[];
+    handleAttachmentsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    removeAttachment: (index: number) => void;
 }
 
 function FormBody({
@@ -29,6 +37,9 @@ function FormBody({
     setRegistrationCloseAt,
     eventStartAt,
     setEventStartAt,
+    attachments,
+    handleAttachmentsChange,
+    removeAttachment,
 }: FormBodyProps) {
     return (
         <>
@@ -153,6 +164,38 @@ function FormBody({
                         input: "text-gray-900",
                     }}
                 />
+                <div className="flex flex-col gap-2">
+                    <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
+                        onChange={handleAttachmentsChange}
+                        label="ไฟล์แนบ (สูงสุด 10 ไฟล์)"
+                        variant="faded"
+                        multiple
+                    />
+                    {attachments.length > 0 && (
+                        <div className="flex flex-col gap-2 mt-2">
+                            <p className="text-sm text-gray-600">ไฟล์ที่เลือก ({attachments.length}/10):</p>
+                            <div className="flex flex-wrap gap-2">
+                                {attachments.map((attachment, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg text-sm"
+                                    >
+                                        <span className="truncate max-w-[150px]">{attachment.name}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAttachment(index)}
+                                            className="text-red-500 hover:text-red-700"
+                                        >
+                                            <i className="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     )

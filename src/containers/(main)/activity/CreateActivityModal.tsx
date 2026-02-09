@@ -12,7 +12,7 @@ import { useState } from "react";
 import { api } from "@/services";
 import { toast } from "sonner";
 import type { DateValue } from "@internationalized/date";
-import FormBody from "@/components/(main)/activity/modal/FormBody";
+import FormBody, { AttachmentFile } from "@/components/(main)/activity/modal/FormBody";
 
 interface CreateActivityModalProps {
     isOpen: boolean;
@@ -27,6 +27,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
     const [eventStartAt, setEventStartAt] = useState<DateValue | null>(null);
     const [thumbnail, setThumbnail] = useState<File | null>(null);
     const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+    const [attachments, setAttachments] = useState<AttachmentFile[]>([]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -38,6 +39,24 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleAttachmentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            const newFiles = Array.from(files).map((file) => ({
+                file,
+                name: file.name,
+            }));
+            setAttachments((prev) => {
+                const combined = [...prev, ...newFiles];
+                return combined.slice(0, 10);
+            });
+        }
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments((prev) => prev.filter((_, i) => i !== index));
     };
     const toDate = (dateValue: DateValue): Date => {
         if ('hour' in dateValue && 'minute' in dateValue) {
@@ -77,6 +96,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
                 registration_open_at: toDate(registrationOpenAt).toISOString(),
                 registration_close_at: toDate(registrationCloseAt).toISOString(),
                 event_start_at: toDate(eventStartAt).toISOString(),
+                attachments: attachments.map((a) => a.file),
             }
             console.log(finalData)
             await api.activityService.createActivity(finalData);
@@ -97,6 +117,7 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
         setEventStartAt(null);
         setThumbnail(null);
         setThumbnailPreview("");
+        setAttachments([]);
         onClose();
     };
 
@@ -128,6 +149,9 @@ export const CreateActivityModal = ({ isOpen, onClose, onSuccess }: CreateActivi
                                 setRegistrationCloseAt={setRegistrationCloseAt}
                                 eventStartAt={eventStartAt}
                                 setEventStartAt={setEventStartAt}
+                                attachments={attachments}
+                                handleAttachmentsChange={handleAttachmentsChange}
+                                removeAttachment={removeAttachment}
                             />
                         </ModalBody>
                         <ModalFooter>
