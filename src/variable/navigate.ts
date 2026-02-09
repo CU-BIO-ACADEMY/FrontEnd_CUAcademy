@@ -20,12 +20,6 @@ interface NavLinkitem{
 
 export const Sidelinks: SideLinkitem[] = [
     {
-        title: 'หน้าหลัก',
-        icon: 'fa-house-blank',
-        link:'/home',
-        disable: true,
-    },
-    {
         title: 'กิจกรรม',
         icon: 'fa-chart-network',
         link:'/activity',
@@ -34,19 +28,25 @@ export const Sidelinks: SideLinkitem[] = [
     {
         title: 'เกี่ยวกับเรา',
         icon: 'fa-circle-info',
-        link:'/about',
-        disable: true,
+        link: '/about',
+        disable: false,
     },
     {
         title: 'เติมเครดิต',
         icon: 'fa-credit-card',
         link:'/payment',
-        disable: false,
+        disable: true,
     },
     {
         title: 'ประวัติการทำธุรกรรม',
         icon: 'fa-clock',
         link:'/history',
+        disable: true,
+    },
+    {
+        title: 'โปรไฟล์',
+        icon: 'fa-user',
+        link:'/profile',
         disable: false,
     },
     {
@@ -55,22 +55,10 @@ export const Sidelinks: SideLinkitem[] = [
         link:'/admin',
         disable: false,
     },
-    {
-        title: 'โปรไฟล์',
-        icon: 'fa-user',
-        link:'/profile',
-        disable: false,
-    }
 ]
 
 
 export const Navlinks: NavLinkitem[] = [
-    {
-        title: 'หน้าหลัก',
-        link:'/home',
-        disable: true,
-        dropdown:[]
-    },
     {
         title: 'กิจกรรม',
         link:'/activity',
@@ -80,24 +68,24 @@ export const Navlinks: NavLinkitem[] = [
     {
         title: 'เกี่ยวกับเรา',
         link:'/about',
-        disable: true,
+        disable: false,
         dropdown:[]
     },
-    {
-        title: 'ธุรกรรม',
-        link:'/history',
-        disable: false,
-        dropdown:[
-            {
-                title:'เติมเครดิต',
-                link:'/payment'
-            },
-            {
-                title:'ประวัติการทำธุรกรรม',
-                link:'/history'
-            }
-        ]
-    },
+    // {
+    //     title: 'ธุรกรรม',
+    //     link:'/history',
+    //     disable: true,
+    //     dropdown:[
+    //         {
+    //             title:'เติมเครดิต',
+    //             link:'/payment'
+    //         },
+    //         {
+    //             title:'ประวัติการทำธุรกรรม',
+    //             link:'/history'
+    //         }
+    //     ]
+    // },
     {
         title: 'โปรไฟล์',
         link:'/profile',

@@ -5,6 +5,7 @@ import { ActivityRegistrationModal } from "@/components/(main)/activity/Activity
 import AvatarCard from "@/components/(main)/activity/slug/AvatarCard";
 import BodyCard from "@/components/(main)/activity/slug/BodyCard";
 import type { ActivityFile } from "@/components/(main)/activity/slug/BodyCard";
+import { PdfViewerCard } from "@/components/(main)/activity/slug/PdfViewerCard";
 import { api } from "@/services";
 import useSWR from "swr";
 
@@ -58,6 +59,13 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                             title={data.title}
                             isFull={isFull}
                         />
+                        <div className="mt-3">
+                            <h3 className="text-lg font-semibold text-gray-800">รายชื่อผู้สมัคร</h3>
+                            <PdfViewerCard
+                                url={`/api/activities/${id}/registrants.pdf`}
+                                filename="รายชื่อผู้สมัคร.pdf"
+                            />
+                        </div>
                     </div>
                     <BodyCard disc={data.description} files={files} />
                 </div>

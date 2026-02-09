@@ -142,6 +142,17 @@ export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProp
                         <p className="text-gray-900 text-sm">{applicant.createdAt}</p>
                     </div>
                 </div>
+                {status === "approved" && (
+                    <div className="w-full flex bg-pink-500/10 rounded-md ring ring-pink-300 p-4 items-center justify-between">
+                        <div>
+                            <p className=" text-sm">กิจกรรมที่รับ</p>
+                            <p className="text-xl w-40 line-clamp-1">{`awdwafgwad`}</p>
+                        </div>
+                        <div>
+                            <Button variant="shadow" color="secondary" size="md">ลายละเอียด</Button>
+                        </div>
+                    </div>
+                ) }
             </CardBody>
 
             <CardFooter className="gap-2 px-5 pb-5">

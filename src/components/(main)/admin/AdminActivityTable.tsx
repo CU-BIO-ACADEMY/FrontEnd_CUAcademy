@@ -135,7 +135,7 @@ export function AdminActivityTable({ activities, isLoading = false, onApproveSuc
                             size="sm"
                             variant="flat"
                             className="text-(--pink2)"
-                            onPress={() => router.push(`/activity/${activity.id}`)}
+                            onPress={() => router.push(`/admin/${activity.id}`)}
                         >
                             ดูรายละเอียด
                         </Button>

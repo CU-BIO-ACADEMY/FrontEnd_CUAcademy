@@ -23,7 +23,7 @@ const fileIcon = (name: string) => {
 
 function BodyCard({ disc, files }:BodyCardProps) {
   return (
-    <Card className="flex-2">
+    <Card className="flex-2 h-max">
         <CardHeader className="flex text-2xl font-semibold px-6 pt-5 pb-0">
             รายละเอียดกิจกรรม
         </CardHeader>

@@ -60,10 +60,10 @@ const Navbar = () => {
                 <div className={`flex md:gap-4 items-center`}>
                     { user ? (
                         <>
-                            <Button size="sm" radius="sm" className={`border-2 border-(--pink2) bg-(--pink1) text-gray-600 flex items-center gap-1`}>
+                            {/*<Button size="sm" radius="sm" className={`border-2 border-(--pink2) bg-(--pink1) text-gray-600 flex items-center gap-1`}>
                                 <i className="fa-duotone fa-solid fa-credit-card"></i>{user.balance}
-                            </Button>
-                            <Avatar src="" alt={`avatar`} isBordered size="sm" onClick={() => console.log("Nano")}
+                            </Button>*/}
+                            <Avatar src="" alt={`avatar`} isBordered size="sm" onClick={() => router.push("/profile")}
                                 classNames={{
                                     base: "bg-linear-to-br from-[var(--pink1)] to-[var(--pink2)]",
                                     icon: "text-black/80",
