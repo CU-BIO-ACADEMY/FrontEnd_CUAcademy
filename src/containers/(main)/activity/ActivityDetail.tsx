@@ -34,9 +34,9 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
 
     const files = data.attachments.map(
         (att): ActivityFile => ({
-            name: att.filename,
-            url: att.url,
-            size: `${(att.size / 1024).toFixed(2)} KB`,
+            name: att.display_name || att.file.filename,
+            url: att.file.url,
+            size: `${(att.file.size / 1024).toFixed(2)} KB`,
         })
     );
 
@@ -44,7 +44,7 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
         <>
             <div className="flex flex-col gap-2">
                 <Image
-                    src={data.thumbnail}
+                    src={data.thumbnail.url}
                     alt="banner"
                     classNames={{ wrapper: "max-w-none!" }}
                     className="w-full aspect-4/1 md:aspect-6/1 object-cover"
@@ -53,9 +53,9 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                     <div className="flex-1">
                         <AvatarCard
                             id={id}
-                            img={data.thumbnail}
+                            img={data.thumbnail.url}
                             regisNow={data.users_registered}
-                            regisMax={data.max_users}
+                            regisMax={data.schedules.reduce((sum, s) => sum + s.max_users, 0)}
                             title={data.title}
                             isFull={isFull}
                         />

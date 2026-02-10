@@ -20,13 +20,19 @@ interface ActivityCardInterFace {
 }
 
 export function ActivityCard({ activity, currentParticipants = 0, onRegisterSuccess }: ActivityCardInterFace) {
-    const value = (currentParticipants / activity.max_users) * 100;
+    // ใช้ข้อมูลจาก schedule แรก หรือคำนวณจากทุก schedules
+    const firstSchedule = activity.schedules[0];
+    const maxUsers = firstSchedule?.max_users ?? 0;
+    const eventStartAt = firstSchedule?.event_start_at ?? activity.next_event_start_at ?? activity.registration_open_at;
+    const price = activity.price ?? firstSchedule?.price ?? 0;
+    
+    const value = maxUsers > 0 ? (currentParticipants / maxUsers) * 100 : 0;
     const router = useRouter();
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
 
     const isNew = dayjs().diff(dayjs(activity.registration_open_at), "day") < 3;
-    const isFull = currentParticipants >= activity.max_users;
-    const eventDate = dayjs(activity.event_start_at).format("DD/MM/YYYY");
+    const isFull = maxUsers > 0 && currentParticipants >= maxUsers;
+    const eventDate = dayjs(eventStartAt).format("DD/MM/YYYY");
 
     return (
         <div key={activity.id} className={`relative`}>
@@ -54,7 +60,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                             <div className={`text-gray-500 text-sm flex justify-between`}>
                                 <span>ผู้สมัคร</span>
                                 <span>
-                                    {currentParticipants}/{activity.max_users}
+                                    {currentParticipants}/{maxUsers}
                                 </span>
                             </div>
                             <Progress
@@ -65,7 +71,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                         <div
                             className={` text-center text-sm text-gray-700 flex items-center justify-center gap-1 relative`}
                         >
-                            <span className="underline">ค่าสมัคร : {activity.price} ฿</span>
+                            <span className="underline">ค่าสมัคร : {price} ฿</span>
                             <i className="fa-duotone fa-solid fa-credit-card absolute right-1"></i>
                         </div>
                     </div>
@@ -98,7 +104,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                 onClose={onModalClose}
                 activityId={activity.id}
                 activityTitle={activity.title}
-                activityPrice={activity.price}
+                activityPrice={price}
                 onSuccess={onRegisterSuccess}
             />
         </div>
