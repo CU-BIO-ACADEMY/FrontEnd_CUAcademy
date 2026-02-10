@@ -22,7 +22,12 @@ interface ActivityCardInterFace {
 export function ActivityCard({ activity, currentParticipants = 0, onRegisterSuccess }: ActivityCardInterFace) {
     // ใช้ข้อมูลจาก schedule แรก หรือคำนวณจากทุก schedules
     const firstSchedule = activity.schedules[0];
-    const maxUsers = firstSchedule?.max_users ?? 0;
+    const regisMax = () => {
+        let hh = 0
+        activity.schedules.map((item) => hh += item.max_users)
+        return hh
+    }
+    const maxUsers = regisMax();
     const eventStartAt = firstSchedule?.event_start_at ?? activity.next_event_start_at ?? activity.registration_open_at;
     const price = activity.price ?? firstSchedule?.price ?? 0;
 
