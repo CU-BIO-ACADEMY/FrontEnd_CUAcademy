@@ -8,21 +8,8 @@ import {
     Button,
     Divider
 } from "@heroui/react";
-import { GraduationCap, School, User, Mail, Calendar, Edit, Trash2, UtensilsCrossed } from "lucide-react";
-
-interface Applicant {
-    id: string;
-    prefix: string;
-    studentName: string;
-    educationLevel: string;
-    schoolName: string;
-    parentName: string;
-    parentEmail: string;
-    backupEmail: string;
-    createdAt: string;
-    foodAllergy?: string;
-    status?: "pending" | "approved" | "rejected";
-}
+import { GraduationCap, School, User, Mail, Calendar, Edit, Trash2, UtensilsCrossed, Phone } from "lucide-react";
+import type { Applicant } from "@/types/applicant";
 
 interface ApplicantCardProps {
     applicant: Applicant;
@@ -120,6 +107,16 @@ export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProp
                     <div className="flex-1">
                         <p className="text-sm text-gray-500 mb-1">อีเมลสำรอง</p>
                         <p className="text-gray-900 text-sm break-all">{applicant.backupEmail}</p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                    <div className="p-2 bg-pink-50 rounded-lg">
+                        <Phone className="w-5 h-5 text-pink-400" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm text-gray-500 mb-1">เบอร์โทร</p>
+                        <p className="text-gray-900 text-sm">{applicant.parentTel || "-"}</p>
                     </div>
                 </div>
 

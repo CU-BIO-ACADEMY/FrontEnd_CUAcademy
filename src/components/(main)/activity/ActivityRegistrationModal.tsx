@@ -11,6 +11,8 @@ import {
     Input,
     Checkbox,
     CheckboxGroup,
+    Radio,
+    RadioGroup,
 } from "@heroui/react";
 import {
     GraduationCap,
@@ -43,6 +45,19 @@ dayjs.locale("th");
 const PROMPTPAY_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER;
 
 type ScheduleItem = ActivityScheduleDetail | ActivityScheduleWithUsers;
+
+interface StudentInfoOption {
+    id: string;
+    prefix: string;
+    full_name: string;
+    education_level: number;
+    school: string;
+    food_allergies: string | null;
+    parent_name: string;
+    parent_email: string;
+    secondary_email: string | null;
+    phone_number: string | null;
+}
 
 interface ActivityRegistrationModalProps {
     isOpen: boolean;
@@ -95,6 +110,7 @@ export function ActivityRegistrationModal({
     const { user } = useAuth();
     const [step, setStep] = useState(1);
     const [studentInfo, setStudentInfo] = useState<StudentInformation | null>(null);
+    const [studentInfos, setStudentInfos] = useState<StudentInfoOption[]>([]);
     const [hasProfile, setHasProfile] = useState<boolean | null>(null);
     const [isFetching, setIsFetching] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,7 +118,7 @@ export function ActivityRegistrationModal({
     const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
     const [slipFile, setSlipFile] = useState<File | null>(null);
     const [slipPreview, setSlipPreview] = useState<string | null>(null);
-    const [useExistingProfile, setUseExistingProfile] = useState(true);
+    const [selectedProfileId, setSelectedProfileId] = useState<string | "new">("new");
 
     const prefixes = ["เด็กหญิง", "เด็กชาย", "นาย", "นางสาว"];
     const educationLevels = ["ม. 2", "ม. 3", "ม. 4", "ม. 5", "ม. 6"];
@@ -152,27 +168,31 @@ export function ActivityRegistrationModal({
             setSlipFile(null);
             setSlipPreview(null);
             setStudentInfo(null);
+            setStudentInfos([]);
             setHasProfile(null);
-            setUseExistingProfile(true);
+            setSelectedProfileId("new");
             reset();
-            fetchStudentProfile();
+            fetchStudentProfiles();
         }
     }, [isOpen]);
 
-    const fetchStudentProfile = async () => {
+    const fetchStudentProfiles = async () => {
         setIsFetching(true);
         try {
-            const exists = await api.studentInformationService.checkExists();
-            if (exists.exists) {
-                const data = await api.studentInformationService.getStudentInformation();
-                setStudentInfo(data);
+            const data = await api.studentInformationService.getAllStudentInformation();
+            if (data.length > 0) {
+                setStudentInfos(data);
+                setStudentInfo(data[0]);
                 setHasProfile(true);
+                setSelectedProfileId(data[0].id);
             } else {
                 setHasProfile(false);
+                setSelectedProfileId("new");
             }
         } catch {
             toast.error("ไม่สามารถดึงข้อมูลนักเรียนได้");
             setHasProfile(false);
+            setSelectedProfileId("new");
         } finally {
             setIsFetching(false);
         }
@@ -193,16 +213,14 @@ export function ActivityRegistrationModal({
                 phone_number: data.parentTel,
             };
 
-            if (hasProfile && studentInfo) {
-                await api.studentInformationService.updateStudentInformation(payload);
-            } else {
-                await api.studentInformationService.createStudentInformation(payload);
-            }
+            const result = await api.studentInformationService.createStudentInformation(payload);
             toast.success("บันทึกข้อมูลสำเร็จ");
-            const info = await api.studentInformationService.getStudentInformation();
-            setStudentInfo(info);
+            
+            const infos = await api.studentInformationService.getAllStudentInformation();
+            setStudentInfos(infos);
+            setStudentInfo(infos[infos.length - 1]);
             setHasProfile(true);
-            setUseExistingProfile(true);
+            setSelectedProfileId(infos[infos.length - 1].id);
             setStep(2);
         } catch (error: unknown) {
             const err = error as { message?: string };
@@ -235,13 +253,37 @@ export function ActivityRegistrationModal({
     };
 
     const handleFinalSubmit = async () => {
-        if (!studentInfo) return;
+        const selectedStudent = studentInfos.find(s => s.id === selectedProfileId);
+        if (!selectedStudent && selectedProfileId !== "new") return;
         if (selectedScheduleIds.length === 0) return;
 
         setIsSubmitting(true);
         try {
+            let studentInfoId: string;
+            
+            if (selectedProfileId === "new") {
+                // Create new profile first
+                const formData = watch();
+                const payload = {
+                    prefix: formData.prefix,
+                    full_name: formData.studentName,
+                    education_level: educationLevelToNumber[formData.educationLevel] ?? 2,
+                    school: formData.schoolName,
+                    food_allergies: formData.foodAllergy || undefined,
+                    parent_name: formData.parentName,
+                    parent_email: formData.parentEmail,
+                    secondary_email: formData.backupEmail || undefined,
+                    phone_number: formData.parentTel,
+                };
+                await api.studentInformationService.createStudentInformation(payload);
+                const infos = await api.studentInformationService.getAllStudentInformation();
+                studentInfoId = infos[infos.length - 1].id;
+            } else {
+                studentInfoId = selectedProfileId as string;
+            }
+
             await api.activityService.joinActivity(activityId, {
-                student_information_id: studentInfo.id,
+                student_information_id: studentInfoId,
                 schedule_ids: selectedScheduleIds,
                 slip: slipFile || undefined,
             });
@@ -291,69 +333,30 @@ export function ActivityRegistrationModal({
         </div>
     );
 
-    const renderExistingProfile = () => (
-        <div className="space-y-4">
-            <Card className="bg-pink-50 border-pink-100">
-                <CardBody className="gap-3">
-                    <div className="flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5 text-pink-500" />
-                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลนักเรียน</h3>
+    const renderProfileRadio = (profile: StudentInfoOption) => (
+        <div className="w-full">
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">
+                        {profile.prefix} {profile.full_name}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                        ({educationLevelMap[profile.education_level] ?? `ม. ${profile.education_level}`})
+                    </span>
+                </div>
+                <div className="text-sm text-gray-600">
+                    {profile.school} | ผู้ปกครอง: {profile.parent_name}
+                </div>
+                {profile.food_allergies && (
+                    <div className="text-sm text-orange-600">
+                        แพ้อาหาร: {profile.food_allergies}
                     </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span className="text-gray-500">ชื่อ-นามสกุล</span>
-                            <p className="font-medium">
-                                {studentInfo!.prefix} {studentInfo!.full_name}
-                            </p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">ระดับการศึกษา</span>
-                            <p className="font-medium">
-                                {educationLevelMap[studentInfo!.education_level] ??
-                                    `ม. ${studentInfo!.education_level}`}
-                            </p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">โรงเรียน</span>
-                            <p className="font-medium">{studentInfo!.school}</p>
-                        </div>
-                        {studentInfo!.food_allergies && (
-                            <div>
-                                <span className="text-gray-500">การแพ้อาหาร</span>
-                                <p className="font-medium">{studentInfo!.food_allergies}</p>
-                            </div>
-                        )}
-                    </div>
-                </CardBody>
-            </Card>
-            <Card className="bg-pink-50 border-pink-100">
-                <CardBody className="gap-3">
-                    <div className="flex items-center gap-2">
-                        <User className="w-5 h-5 text-pink-500" />
-                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ปกครอง</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span className="text-gray-500">ชื่อผู้ปกครอง</span>
-                            <p className="font-medium">{studentInfo!.parent_name}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">อีเมล</span>
-                            <p className="font-medium">{studentInfo!.parent_email}</p>
-                        </div>
-                        {studentInfo!.phone_number && (
-                            <div>
-                                <span className="text-gray-500">เบอร์โทร</span>
-                                <p className="font-medium">{studentInfo!.phone_number}</p>
-                            </div>
-                        )}
-                    </div>
-                </CardBody>
-            </Card>
+                )}
+            </div>
         </div>
     );
 
-    const renderNewProfileForm = () => (
+    const renderNewProfileForm = (isDisabled: boolean = false) => (
         <div className="space-y-4">
             {!hasProfile && (
                 <div className="text-center py-2">
@@ -364,7 +367,7 @@ export function ActivityRegistrationModal({
                 </div>
             )}
 
-            <Card className="bg-pink-50 border-pink-100">
+            <Card className={`bg-pink-50 border-pink-100 ${isDisabled ? "opacity-60" : ""}`}>
                 <CardBody className="gap-4">
                     <div className="flex items-center gap-2">
                         <GraduationCap className="w-5 h-5 text-pink-500" />
@@ -386,6 +389,7 @@ export function ActivityRegistrationModal({
                                             type="button"
                                             variant={selectedPrefix === prefix ? "solid" : "bordered"}
                                             onPress={() => field.onChange(prefix)}
+                                            isDisabled={isDisabled}
                                             className={
                                                 selectedPrefix === prefix
                                                     ? "bg-pink-400 text-white font-medium"
@@ -416,6 +420,7 @@ export function ActivityRegistrationModal({
                                 isInvalid={!!errors.studentName}
                                 errorMessage={errors.studentName?.message}
                                 variant="bordered"
+                                isDisabled={isDisabled}
                             />
                         )}
                     />
@@ -437,6 +442,7 @@ export function ActivityRegistrationModal({
                                                 selectedEducationLevel === level ? "solid" : "bordered"
                                             }
                                             onPress={() => field.onChange(level)}
+                                            isDisabled={isDisabled}
                                             className={
                                                 selectedEducationLevel === level
                                                     ? "bg-pink-400 text-white font-medium"
@@ -470,6 +476,7 @@ export function ActivityRegistrationModal({
                                 errorMessage={errors.schoolName?.message}
                                 variant="bordered"
                                 startContent={<School className="w-5 h-5 text-gray-400" />}
+                                isDisabled={isDisabled}
                             />
                         )}
                     />
@@ -485,13 +492,14 @@ export function ActivityRegistrationModal({
                                 placeholder="ระบุอาหารที่แพ้ (ถ้ามี)"
                                 variant="bordered"
                                 startContent={<UtensilsCrossed className="w-5 h-5 text-gray-400" />}
+                                isDisabled={isDisabled}
                             />
                         )}
                     />
                 </CardBody>
             </Card>
 
-            <Card className="bg-pink-50 border-pink-100">
+            <Card className={`bg-pink-50 border-pink-100 ${isDisabled ? "opacity-60" : ""}`}>
                 <CardBody className="gap-4">
                     <div className="flex items-center gap-2">
                         <User className="w-5 h-5 text-pink-500" />
@@ -509,6 +517,7 @@ export function ActivityRegistrationModal({
                                 <Checkbox
                                     isSelected={field.value}
                                     onValueChange={handleUseUserEmailChange}
+                                    isDisabled={isDisabled}
                                     classNames={{
                                         wrapper: "after:bg-pink-400",
                                         label: "text-sm md:text-base",
@@ -532,6 +541,7 @@ export function ActivityRegistrationModal({
                                 isInvalid={!!errors.parentName}
                                 errorMessage={errors.parentName?.message}
                                 variant="bordered"
+                                isDisabled={isDisabled}
                             />
                         )}
                     />
@@ -549,6 +559,7 @@ export function ActivityRegistrationModal({
                                 isInvalid={!!errors.parentTel}
                                 errorMessage={errors.parentTel?.message}
                                 variant="bordered"
+                                isDisabled={isDisabled}
                             />
                         )}
                     />
@@ -566,7 +577,7 @@ export function ActivityRegistrationModal({
                                 isInvalid={!!errors.parentEmail}
                                 errorMessage={errors.parentEmail?.message}
                                 variant="bordered"
-                                isDisabled={useUserEmailValue}
+                                isDisabled={useUserEmailValue || isDisabled}
                                 startContent={<Mail className="w-5 h-5 text-gray-400" />}
                             />
                         )}
@@ -585,7 +596,7 @@ export function ActivityRegistrationModal({
                                 isInvalid={!!errors.backupEmail}
                                 errorMessage={errors.backupEmail?.message}
                                 variant="bordered"
-                                isDisabled={useUserEmailValue}
+                                isDisabled={useUserEmailValue || isDisabled}
                                 startContent={<Mail className="w-5 h-5 text-gray-400" />}
                             />
                         )}
@@ -594,6 +605,43 @@ export function ActivityRegistrationModal({
             </Card>
         </div>
     );
+
+    const handleProfileSelection = (value: string) => {
+        setSelectedProfileId(value);
+        if (value !== "new") {
+            const selected = studentInfos.find(s => s.id === value);
+            if (selected) {
+                setStudentInfo(selected as StudentInformation);
+                // Pre-fill form with selected profile data (for reference, but disabled)
+                reset({
+                    prefix: selected.prefix,
+                    studentName: selected.full_name,
+                    educationLevel: educationLevelMap[selected.education_level] ?? "",
+                    schoolName: selected.school,
+                    foodAllergy: selected.food_allergies ?? "",
+                    parentName: selected.parent_name,
+                    parentEmail: selected.parent_email,
+                    backupEmail: selected.secondary_email ?? "",
+                    useUserEmail: false,
+                    parentTel: selected.phone_number ?? "",
+                });
+            }
+        } else {
+            // Clear form for new entry
+            reset({
+                prefix: "",
+                studentName: "",
+                educationLevel: "",
+                schoolName: "",
+                foodAllergy: "",
+                parentName: "",
+                parentEmail: "",
+                backupEmail: "",
+                useUserEmail: false,
+                parentTel: "",
+            });
+        }
+    };
 
     const renderStep1 = () => {
         if (isFetching) {
@@ -604,47 +652,54 @@ export function ActivityRegistrationModal({
             );
         }
 
-        // Has existing profile — show toggle between existing and new form
-        if (hasProfile && studentInfo) {
-            return (
-                <div className="space-y-4">
-                    <div className="flex gap-2">
-                        <Button
-                            variant={useExistingProfile ? "solid" : "bordered"}
-                            className={useExistingProfile ? "bg-pink-400 text-white flex-1" : "flex-1"}
-                            onPress={() => setUseExistingProfile(true)}
-                        >
-                            ใช้ข้อมูลที่มีอยู่
-                        </Button>
-                        <Button
-                            variant={!useExistingProfile ? "solid" : "bordered"}
-                            className={!useExistingProfile ? "bg-pink-400 text-white flex-1" : "flex-1"}
-                            onPress={() => {
-                                setUseExistingProfile(false);
-                                reset({
-                                    prefix: studentInfo.prefix,
-                                    studentName: studentInfo.full_name,
-                                    educationLevel: educationLevelMap[studentInfo.education_level] ?? "",
-                                    schoolName: studentInfo.school,
-                                    foodAllergy: studentInfo.food_allergies ?? "",
-                                    parentName: studentInfo.parent_name,
-                                    parentEmail: studentInfo.parent_email,
-                                    backupEmail: studentInfo.secondary_email ?? "",
-                                    useUserEmail: false,
-                                    parentTel: studentInfo.phone_number ?? "",
-                                });
-                            }}
-                        >
-                            กรอกข้อมูลใหม่
-                        </Button>
-                    </div>
-                    {useExistingProfile ? renderExistingProfile() : renderNewProfileForm()}
-                </div>
-            );
-        }
+        const isExistingSelected = selectedProfileId !== "new";
 
-        // No profile — show create form only
-        return renderNewProfileForm();
+        return (
+            <div className="space-y-4">
+                {/* Profile Selection Radio Group */}
+                <Card className="bg-blue-50 border-blue-100">
+                    <CardBody className="gap-4">
+                        <div className="flex items-center gap-2">
+                            <User className="w-5 h-5 text-blue-500" />
+                            <h3 className="text-lg font-semibold text-gray-900">เลือกผู้สมัคร</h3>
+                        </div>
+                        
+                        <RadioGroup
+                            value={selectedProfileId}
+                            onValueChange={handleProfileSelection}
+                            className="gap-3"
+                        >
+                            {studentInfos.map((profile) => (
+                                <Radio
+                                    key={profile.id}
+                                    value={profile.id}
+                                    classNames={{
+                                        wrapper: "after:bg-pink-400",
+                                        base: "max-w-none",
+                                    }}
+                                >
+                                    {renderProfileRadio(profile)}
+                                </Radio>
+                            ))}
+                            <Radio
+                                value="new"
+                                classNames={{
+                                    wrapper: "after:bg-pink-400",
+                                    base: "max-w-none",
+                                }}
+                            >
+                                <div className="flex items-center gap-2 py-1">
+                                    <span className="font-medium text-gray-900">+ เพิ่มผู้สมัครใหม่</span>
+                                </div>
+                            </Radio>
+                        </RadioGroup>
+                    </CardBody>
+                </Card>
+
+                {/* Profile Form - Disabled when existing profile selected */}
+                {renderNewProfileForm(isExistingSelected)}
+            </div>
+        );
     };
 
     const renderStep2 = () => (
@@ -774,7 +829,10 @@ export function ActivityRegistrationModal({
 
     const renderFooter = () => {
         if (step === 1) {
-            if (hasProfile === false) {
+            const isNewProfile = selectedProfileId === "new";
+            
+            // ถ้าเลือกสร้างใหม่ ต้องกรอก form ก่อน
+            if (isNewProfile) {
                 return (
                     <>
                         <Button color="default" variant="flat" onPress={handleClose}>
@@ -782,7 +840,7 @@ export function ActivityRegistrationModal({
                         </Button>
                         <Button
                             className="bg-pink-400 text-white"
-                            onPress={() => handleSubmit(handleCreateProfile)()}
+                            onPress={() => handleSubmit(handleSaveProfile)()}
                             isLoading={isCreatingProfile}
                         >
                             บันทึกและถัดไป
@@ -790,6 +848,8 @@ export function ActivityRegistrationModal({
                     </>
                 );
             }
+            
+            // ถ้าเลือก profile ที่มีอยู่ ไป step 2 ได้เลย
             return (
                 <>
                     <Button color="default" variant="flat" onPress={handleClose}>
@@ -798,7 +858,7 @@ export function ActivityRegistrationModal({
                     <Button
                         className="bg-pink-400 text-white"
                         onPress={() => setStep(2)}
-                        isDisabled={!hasProfile || isFetching}
+                        isDisabled={!selectedProfileId || selectedProfileId === "new"}
                     >
                         ถัดไป
                     </Button>
