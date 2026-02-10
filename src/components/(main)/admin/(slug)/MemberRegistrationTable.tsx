@@ -29,13 +29,16 @@ export interface Registrant {
     education_level: string;
     registered_at: string;
     event_dates: string[];
-    status: "pending" | "approved";
+    status: "pending" | "approved" | "rejected";
+    slip_url?: string | null;
+    amount?: number;
 }
 
 interface MemberRegistrationTableProps {
     registrants: Registrant[];
     isLoading?: boolean;
     onConfirm?: (id: string) => void;
+    onReject?: (id: string) => void;
     onSendEmail?: (id: string) => void;
     onSendEmailAll?: (ids: string[]) => void;
     onDelete?: (id: string) => void;
@@ -61,6 +64,7 @@ export function MemberRegistrationTable({
     registrants,
     isLoading = false,
     onConfirm,
+    onReject,
     onSendEmail,
     onSendEmailAll,
     onDelete,
@@ -207,39 +211,58 @@ export function MemberRegistrationTable({
             case "registered_at":
                 return new Date(registrant.registered_at).toLocaleDateString("th-TH");
             case "status":
+                const statusConfig = {
+                    approved: { color: "success" as const, label: "อนุมัติแล้ว" },
+                    rejected: { color: "danger" as const, label: "ปฏิเสธ" },
+                    pending: { color: "warning" as const, label: "รออนุมัติ" },
+                };
+                const config = statusConfig[registrant.status];
                 return (
                     <Chip
-                        color={registrant.status === "approved" ? "success" : "warning"}
+                        color={config.color}
                         variant="flat"
                         size="sm"
                     >
-                        {registrant.status === "approved" ? "อนุมัติแล้ว" : "รออนุมัติ"}
+                        {config.label}
                     </Chip>
                 );
             case "actions":
                 return (
                     <div className="flex gap-2">
                         {registrant.status === "pending" && (
-                            <Tooltip content="อนุมัติ">
-                                <Button
-                                    isIconOnly
-                                    size="sm"
-                                    variant="flat"
-                                    color="success"
-                                    onPress={() => onConfirm?.(registrant.id)}
-                                >
-                                    <i className="fa-solid fa-check" />
-                                </Button>
-                            </Tooltip>
+                            <>
+                                <Tooltip content="อนุมัติ">
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="flat"
+                                        color="success"
+                                        onPress={() => onConfirm?.(registrant.id)}
+                                    >
+                                        <i className="fa-solid fa-check" />
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="ปฏิเสธ" color="danger">
+                                    <Button
+                                        isIconOnly
+                                        size="sm"
+                                        variant="flat"
+                                        color="danger"
+                                        onPress={() => onReject?.(registrant.id)}
+                                    >
+                                        <i className="fa-solid fa-xmark" />
+                                    </Button>
+                                </Tooltip>
+                            </>
                         )}
-                        <Tooltip content={registrant.status === "pending" ? "ต้องอนุมัติก่อนจึงจะส่งอีเมลได้" : "ส่งอีเมล"}>
+                        <Tooltip content={registrant.status === "approved" ? "ส่งอีเมล" : "ต้องอนุมัติก่อนจึงจะส่งอีเมลได้"}>
                             <span>
                                 <Button
                                     isIconOnly
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    isDisabled={registrant.status === "pending" || formatEmail === ""}
+                                    isDisabled={registrant.status !== "approved" || formatEmail === ""}
                                     onPress={() => onSendEmail?.(registrant.id)}
                                 >
                                     <i className="fa-solid fa-envelope" />
@@ -263,12 +286,13 @@ export function MemberRegistrationTable({
                                 size="sm"
                                 variant="flat"
                                 color="secondary"
+                                isDisabled={!registrant.slip_url}
                                 onPress={() => {
                                     setSlipTarget(registrant);
                                     slipModal.onOpen();
                                 }}
                             >
-                                <i className="fa-solid fa-eye" />
+                                <i className="fa-solid fa-file-invoice" />
                             </Button>
                         </Tooltip>
                     </div>
@@ -449,8 +473,10 @@ export function MemberRegistrationTable({
                     setSlipTarget(null);
                 }}
                 onChange={slipModal.onOpenChange}
-                date={slipTarget ? new Date(slipTarget.registered_at).toLocaleDateString("th-TH") : ""}
-                name={slipTarget?.full_name ?? ""}
+                slipUrl={slipTarget?.slip_url ?? null}
+                studentName={slipTarget?.full_name ?? ""}
+                registeredAt={slipTarget ? new Date(slipTarget.registered_at).toLocaleDateString("th-TH") : ""}
+                amount={slipTarget?.amount}
             />
         </>
     );
