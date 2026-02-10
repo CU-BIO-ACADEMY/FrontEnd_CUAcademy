@@ -7,6 +7,8 @@ import {
     type Registrant,
 } from "@/components/(main)/admin/(slug)/MemberRegistrationTable";
 import { toast } from "sonner";
+import useSWR from "swr";
+import { api } from "@/services";
 
 const mockRegistrants: Registrant[] = [
     {
@@ -57,13 +59,13 @@ const mockRegistrants: Registrant[] = [
 ];
 
 function AdminActivityDetail({ id }: { id: string }) {
+    const { data } = useSWR(`/api/activities/${id}`, () => api.activityService.getActivityById(id));
+
     const [registrants, setRegistrants] = useState<Registrant[]>(mockRegistrants);
 
     const handleConfirm = (registrantId: string) => {
         setRegistrants((prev) =>
-            prev.map((r) =>
-                r.id === registrantId ? { ...r, status: "approved" as const } : r
-            )
+            prev.map((r) => (r.id === registrantId ? { ...r, status: "approved" as const } : r))
         );
         toast.success("อนุมัติผู้สมัครสำเร็จ");
     };
@@ -76,9 +78,7 @@ function AdminActivityDetail({ id }: { id: string }) {
     };
 
     const handleSendEmailAll = (ids: string[]) => {
-        const emails = registrants
-            .filter((r) => ids.includes(r.id))
-            .map((r) => r.email);
+        const emails = registrants.filter((r) => ids.includes(r.id)).map((r) => r.email);
         toast.success(`ส่งอีเมลไปยังผู้สมัครที่อนุมัติแล้วทั้งหมด ${emails.length} คน สำเร็จ`);
     };
 

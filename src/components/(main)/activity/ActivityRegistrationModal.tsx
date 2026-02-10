@@ -131,6 +131,7 @@ export function ActivityRegistrationModal({
         parentEmail: "",
         backupEmail: "",
         useUserEmail: false,
+        parentTel: ""
     });
 
     const {
