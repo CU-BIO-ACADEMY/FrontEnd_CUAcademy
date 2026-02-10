@@ -61,7 +61,7 @@ function AvatarCard({ id, img, title, regisNow, regisMax, isFull, data }: Avatar
                                         <p>{items.users_registered}/{items.max_users}</p>
                                     </div>
                                 }
-                                value={percentage}
+                                value={(items.users_registered / items.max_users)*100}
                                 classNames={{
                                     track: "bg-pink-50",
                                     indicator: isFull
