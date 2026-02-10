@@ -104,7 +104,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                 onClose={onModalClose}
                 activityId={activity.id}
                 activityTitle={activity.title}
-                activityPrice={price}
+                schedules={activity.schedules}
                 onSuccess={onRegisterSuccess}
             />
         </div>

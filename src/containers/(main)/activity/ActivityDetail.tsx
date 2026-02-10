@@ -58,6 +58,7 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                             regisMax={data.schedules.reduce((sum, s) => sum + s.max_users, 0)}
                             title={data.title}
                             isFull={isFull}
+                            schedules={data.schedules}
                         />
                         <div className="mt-3">
                             <h3 className="text-lg font-semibold text-gray-800">รายชื่อผู้สมัคร</h3>
@@ -74,8 +75,8 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                 isOpen={isModalOpen}
                 onClose={onModalClose}
                 activityId={id}
-                activityTitle=""
-                activityPrice={0}
+                activityTitle={data.title}
+                schedules={data.schedules}
             />
         </>
     );

@@ -8,36 +8,80 @@ import {
     Button,
     Card,
     CardBody,
-    RadioGroup,
-    Radio,
     Input,
     Checkbox,
+    CheckboxGroup,
 } from "@heroui/react";
 import {
     GraduationCap,
     AlertCircle,
-    CheckCircle2,
     School,
     UtensilsCrossed,
     User,
     Mail,
+    Upload,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "@/services";
 import { toast } from "sonner";
 import type { StudentInformation } from "@/services/api/StudentInformationService";
 import { Controller, useForm } from "react-hook-form";
-import { ApplicantFormData, applicantSchema } from "../profile/AddApplicantModal";
+import { type ApplicantFormData, applicantSchema } from "../profile/AddApplicantModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/useAuth";
+import type {
+    ActivityScheduleDetail,
+    ActivityScheduleWithUsers,
+} from "@/services/api/ActivityService";
+import dayjs from "dayjs";
+import "dayjs/locale/th";
+import generatePayload from "promptpay-qr";
+import { QRCodeSVG } from "qrcode.react";
+
+dayjs.locale("th");
+
+const PROMPTPAY_NUMBER = process.env.NEXT_PUBLIC_ACCOUNT_NUMBER;
+
+type ScheduleItem = ActivityScheduleDetail | ActivityScheduleWithUsers;
 
 interface ActivityRegistrationModalProps {
     isOpen: boolean;
     onClose: () => void;
     activityId: string;
     activityTitle: string;
-    activityPrice: number;
+    schedules: ScheduleItem[];
     onSuccess?: () => void;
+}
+
+const educationLevelMap: Record<number, string> = {
+    2: "ม. 2",
+    3: "ม. 3",
+    4: "ม. 4",
+    5: "ม. 5",
+    6: "ม. 6",
+};
+
+const educationLevelToNumber: Record<string, number> = {
+    "ม. 2": 2,
+    "ม. 3": 3,
+    "ม. 4": 4,
+    "ม. 5": 5,
+    "ม. 6": 6,
+};
+
+function getAvailableSpots(schedule: ScheduleItem): number {
+    if ("available_spots" in schedule) return schedule.available_spots;
+    return Math.max(0, schedule.max_users - schedule.users_registered);
+}
+
+function formatScheduleLabel(schedule: ScheduleItem): string {
+    const d = dayjs(schedule.event_start_at);
+    const dayName = d.format("dddd");
+    const date = d.format("D");
+    const month = d.format("MMMM");
+    const year = d.year() + 543;
+    const time = d.format("HH:mm");
+    return `สมัครกิจกรรมปฏิบัติการวัน${dayName}ที่ ${date} ${month} พ.ศ. ${year} เวลา ${time} น. (${schedule.price.toLocaleString()} บาท)`;
 }
 
 export function ActivityRegistrationModal({
@@ -45,29 +89,83 @@ export function ActivityRegistrationModal({
     onClose,
     activityId,
     activityTitle,
-    activityPrice,
+    schedules,
     onSuccess,
 }: ActivityRegistrationModalProps) {
     const { user } = useAuth();
-    const [studentProfiles, setStudentProfiles] = useState<StudentInformation[]>([]);
-    const [selectedStudentId, setSelectedStudentId] = useState<string>("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [isFetching, setIsFetching] = useState(false);
+    const [step, setStep] = useState(1);
+    const [studentInfo, setStudentInfo] = useState<StudentInformation | null>(null);
     const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+    const [isFetching, setIsFetching] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+    const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
+    const [slipFile, setSlipFile] = useState<File | null>(null);
+    const [slipPreview, setSlipPreview] = useState<string | null>(null);
+    const [useExistingProfile, setUseExistingProfile] = useState(true);
+
+    const prefixes = ["เด็กหญิง", "เด็กชาย", "นาย", "นางสาว"];
+    const educationLevels = ["ม. 2", "ม. 3", "ม. 4", "ม. 5", "ม. 6"];
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        watch,
+        setValue,
+        reset,
+    } = useForm<ApplicantFormData>({
+        resolver: zodResolver(applicantSchema),
+        defaultValues: {
+            prefix: "",
+            studentName: "",
+            educationLevel: "",
+            schoolName: "",
+            foodAllergy: "",
+            parentName: "",
+            parentEmail: "",
+            backupEmail: "",
+            useUserEmail: false,
+            parentTel: "",
+        },
+    });
+
+    const useUserEmailValue = watch("useUserEmail");
+    const selectedPrefix = watch("prefix");
+    const selectedEducationLevel = watch("educationLevel");
+
+    const totalPrice = useMemo(() => {
+        return schedules
+            .filter((s) => selectedScheduleIds.includes(s.id))
+            .reduce((sum, s) => sum + s.price, 0);
+    }, [selectedScheduleIds, schedules]);
+
+    const qrPayload = useMemo(() => {
+        if (!PROMPTPAY_NUMBER || totalPrice <= 0) return "";
+        return generatePayload(PROMPTPAY_NUMBER, { amount: totalPrice });
+    }, [totalPrice]);
 
     useEffect(() => {
         if (isOpen) {
-            fetchStudentProfiles();
+            setStep(1);
+            setSelectedScheduleIds([]);
+            setSlipFile(null);
+            setSlipPreview(null);
+            setStudentInfo(null);
+            setHasProfile(null);
+            setUseExistingProfile(true);
+            reset();
+            fetchStudentProfile();
         }
     }, [isOpen]);
 
-    const fetchStudentProfiles = async () => {
+    const fetchStudentProfile = async () => {
         setIsFetching(true);
         try {
             const exists = await api.studentInformationService.checkExists();
             if (exists.exists) {
                 const data = await api.studentInformationService.getStudentInformation();
-                setStudentProfiles([data]);
+                setStudentInfo(data);
                 setHasProfile(true);
             } else {
                 setHasProfile(false);
@@ -80,79 +178,42 @@ export function ActivityRegistrationModal({
         }
     };
 
-    const handleRegister = async () => {
-        if (!selectedStudentId) {
-            toast.error("กรุณาเลือกผู้สมัคร");
-            return;
-        }
-
-        setIsLoading(true);
+    const handleSaveProfile = async (data: ApplicantFormData) => {
+        setIsCreatingProfile(true);
         try {
-            await api.activityService.joinActivity(activityId, {
-                student_information_id: selectedStudentId,
-            });
-            toast.success("สมัครกิจกรรมสำเร็จ");
-            onSuccess?.();
-            onClose();
+            const payload = {
+                prefix: data.prefix,
+                full_name: data.studentName,
+                education_level: educationLevelToNumber[data.educationLevel] ?? 2,
+                school: data.schoolName,
+                food_allergies: data.foodAllergy || undefined,
+                parent_name: data.parentName,
+                parent_email: data.parentEmail,
+                secondary_email: data.backupEmail || undefined,
+                phone_number: data.parentTel,
+            };
+
+            if (hasProfile && studentInfo) {
+                await api.studentInformationService.updateStudentInformation(payload);
+            } else {
+                await api.studentInformationService.createStudentInformation(payload);
+            }
+            toast.success("บันทึกข้อมูลสำเร็จ");
+            const info = await api.studentInformationService.getStudentInformation();
+            setStudentInfo(info);
+            setHasProfile(true);
+            setUseExistingProfile(true);
+            setStep(2);
         } catch (error: unknown) {
             const err = error as { message?: string };
-            toast.error(err.message || "เกิดข้อผิดพลาดในการสมัคร");
+            toast.error(err.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
         } finally {
-            setIsLoading(false);
+            setIsCreatingProfile(false);
         }
     };
 
-    const handleClose = () => {
-        setSelectedStudentId("");
-        onClose();
-    };
-
-    const getEducationLevelText = (level: number) => {
-        const map: Record<number, string> = {
-            2: "ม. 2",
-            3: "ม. 3",
-            4: "ม. 4",
-            5: "ม. 5",
-            6: "ม. 6",
-        };
-        return map[level] || `ม. ${level}`;
-    };
-
-    const prefixes = ["เด็กหญิง", "เด็กชาย", "นาย", "นางสาว"];
-    const educationLevels = ["ม. 2", "ม. 3", "ม. 4", "ม. 5", "ม. 6"];
-
-    const getDefaultValues = (): ApplicantFormData => ({
-        prefix: "",
-        studentName: "",
-        educationLevel: "",
-        schoolName: "",
-        foodAllergy: "",
-        parentName: "",
-        parentEmail: "",
-        backupEmail: "",
-        useUserEmail: false,
-        parentTel: ""
-    });
-
-    const {
-        control,
-        handleSubmit,
-        formState: { errors },
-        watch,
-        setValue,
-        reset,
-    } = useForm<ApplicantFormData>({
-        resolver: zodResolver(applicantSchema),
-        defaultValues: getDefaultValues(),
-    });
-
-    const useUserEmailValue = watch("useUserEmail");
-    const selectedPrefix = watch("prefix");
-    const selectedEducationLevel = watch("educationLevel");
-
     const handleUseUserEmailChange = (checked: boolean) => {
-        const userEmail = user?.email
-
+        const userEmail = user?.email;
         setValue("useUserEmail", checked);
         if (checked && userEmail) {
             setValue("parentEmail", userEmail, { shouldValidate: true });
@@ -161,6 +222,622 @@ export function ActivityRegistrationModal({
             setValue("parentEmail", "", { shouldValidate: false });
             setValue("backupEmail", "", { shouldValidate: false });
         }
+    };
+
+    const handleSlipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSlipFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setSlipPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleFinalSubmit = async () => {
+        if (!studentInfo) return;
+        if (selectedScheduleIds.length === 0) return;
+
+        setIsSubmitting(true);
+        try {
+            await api.activityService.joinActivity(activityId, {
+                student_information_id: studentInfo.id,
+                schedule_ids: selectedScheduleIds,
+                slip: slipFile || undefined,
+            });
+            toast.success("สมัครกิจกรรมสำเร็จ รอการอนุมัติ");
+            onSuccess?.();
+            onClose();
+        } catch (error: unknown) {
+            const err = error as { message?: string };
+            toast.error(err.message || "เกิดข้อผิดพลาดในการสมัคร");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleClose = () => {
+        setStep(1);
+        setSelectedScheduleIds([]);
+        setSlipFile(null);
+        setSlipPreview(null);
+        onClose();
+    };
+
+    const renderStepIndicator = () => (
+        <div className="flex items-center justify-center gap-2 mb-4">
+            {[1, 2, 3].map((s) => (
+                <div key={s} className="flex items-center gap-2">
+                    <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                            s === step
+                                ? "bg-pink-400 text-white"
+                                : s < step
+                                ? "bg-pink-200 text-pink-600"
+                                : "bg-gray-200 text-gray-400"
+                        }`}
+                    >
+                        {s}
+                    </div>
+                    {s < 3 && (
+                        <div
+                            className={`w-8 h-0.5 ${
+                                s < step ? "bg-pink-300" : "bg-gray-200"
+                            }`}
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+
+    const renderExistingProfile = () => (
+        <div className="space-y-4">
+            <Card className="bg-pink-50 border-pink-100">
+                <CardBody className="gap-3">
+                    <div className="flex items-center gap-2">
+                        <GraduationCap className="w-5 h-5 text-pink-500" />
+                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลนักเรียน</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span className="text-gray-500">ชื่อ-นามสกุล</span>
+                            <p className="font-medium">
+                                {studentInfo!.prefix} {studentInfo!.full_name}
+                            </p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">ระดับการศึกษา</span>
+                            <p className="font-medium">
+                                {educationLevelMap[studentInfo!.education_level] ??
+                                    `ม. ${studentInfo!.education_level}`}
+                            </p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">โรงเรียน</span>
+                            <p className="font-medium">{studentInfo!.school}</p>
+                        </div>
+                        {studentInfo!.food_allergies && (
+                            <div>
+                                <span className="text-gray-500">การแพ้อาหาร</span>
+                                <p className="font-medium">{studentInfo!.food_allergies}</p>
+                            </div>
+                        )}
+                    </div>
+                </CardBody>
+            </Card>
+            <Card className="bg-pink-50 border-pink-100">
+                <CardBody className="gap-3">
+                    <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-pink-500" />
+                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ปกครอง</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span className="text-gray-500">ชื่อผู้ปกครอง</span>
+                            <p className="font-medium">{studentInfo!.parent_name}</p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">อีเมล</span>
+                            <p className="font-medium">{studentInfo!.parent_email}</p>
+                        </div>
+                        {studentInfo!.phone_number && (
+                            <div>
+                                <span className="text-gray-500">เบอร์โทร</span>
+                                <p className="font-medium">{studentInfo!.phone_number}</p>
+                            </div>
+                        )}
+                    </div>
+                </CardBody>
+            </Card>
+        </div>
+    );
+
+    const renderNewProfileForm = () => (
+        <div className="space-y-4">
+            {!hasProfile && (
+                <div className="text-center py-2">
+                    <AlertCircle className="w-12 h-12 text-orange-400 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">
+                        กรุณากรอกข้อมูลผู้สมัครก่อนดำเนินการต่อ
+                    </p>
+                </div>
+            )}
+
+            <Card className="bg-pink-50 border-pink-100">
+                <CardBody className="gap-4">
+                    <div className="flex items-center gap-2">
+                        <GraduationCap className="w-5 h-5 text-pink-500" />
+                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลนักเรียน</h3>
+                    </div>
+
+                    <Controller
+                        name="prefix"
+                        control={control}
+                        render={({ field }) => (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    คำนำหน้า <span className="text-red-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    {prefixes.map((prefix) => (
+                                        <Button
+                                            key={prefix}
+                                            type="button"
+                                            variant={selectedPrefix === prefix ? "solid" : "bordered"}
+                                            onPress={() => field.onChange(prefix)}
+                                            className={
+                                                selectedPrefix === prefix
+                                                    ? "bg-pink-400 text-white font-medium"
+                                                    : "font-medium"
+                                            }
+                                        >
+                                            {prefix}
+                                        </Button>
+                                    ))}
+                                </div>
+                                {errors.prefix && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.prefix.message}</p>
+                                )}
+                            </div>
+                        )}
+                    />
+
+                    <Controller
+                        name="studentName"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                labelPlacement="outside"
+                                label="ชื่อ-นามสกุลของนักเรียน (ภาษาไทย)"
+                                placeholder="ระบุชื่อ-นามสกุลเป็นภาษาไทย"
+                                isRequired
+                                isInvalid={!!errors.studentName}
+                                errorMessage={errors.studentName?.message}
+                                variant="bordered"
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="educationLevel"
+                        control={control}
+                        render={({ field }) => (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    ระดับการศึกษาของนักเรียน <span className="text-red-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+                                    {educationLevels.map((level) => (
+                                        <Button
+                                            key={level}
+                                            type="button"
+                                            variant={
+                                                selectedEducationLevel === level ? "solid" : "bordered"
+                                            }
+                                            onPress={() => field.onChange(level)}
+                                            className={
+                                                selectedEducationLevel === level
+                                                    ? "bg-pink-400 text-white font-medium"
+                                                    : "font-medium"
+                                            }
+                                        >
+                                            {level}
+                                        </Button>
+                                    ))}
+                                </div>
+                                {errors.educationLevel && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                        {errors.educationLevel.message}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    />
+
+                    <Controller
+                        name="schoolName"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                labelPlacement="outside"
+                                label="ชื่อโรงเรียนที่กำลังศึกษาอยู่"
+                                placeholder="โปรดสะกดชื่อโรงเรียนให้ถูกต้อง"
+                                isRequired
+                                isInvalid={!!errors.schoolName}
+                                errorMessage={errors.schoolName?.message}
+                                variant="bordered"
+                                startContent={<School className="w-5 h-5 text-gray-400" />}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="foodAllergy"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                labelPlacement="outside"
+                                label="การแพ้อาหาร"
+                                placeholder="ระบุอาหารที่แพ้ (ถ้ามี)"
+                                variant="bordered"
+                                startContent={<UtensilsCrossed className="w-5 h-5 text-gray-400" />}
+                            />
+                        )}
+                    />
+                </CardBody>
+            </Card>
+
+            <Card className="bg-pink-50 border-pink-100">
+                <CardBody className="gap-4">
+                    <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-pink-500" />
+                        <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ปกครอง</h3>
+                    </div>
+                    <span className="text-red-400 text-sm text-center">
+                        ** หากเป็นผู้สมัครเองให้กรอกเป็นข้อมูลของตนเอง **
+                    </span>
+
+                    {user?.email && (
+                        <Controller
+                            name="useUserEmail"
+                            control={control}
+                            render={({ field }) => (
+                                <Checkbox
+                                    isSelected={field.value}
+                                    onValueChange={handleUseUserEmailChange}
+                                    classNames={{
+                                        wrapper: "after:bg-pink-400",
+                                        label: "text-sm md:text-base",
+                                    }}
+                                >
+                                    ใช้อีเมลของฉัน ({user?.email})
+                                </Checkbox>
+                            )}
+                        />
+                    )}
+
+                    <Controller
+                        name="parentName"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                label="ชื่อผู้ปกครอง"
+                                placeholder="โปรดสะกดชื่อให้ถูกต้อง"
+                                isRequired
+                                isInvalid={!!errors.parentName}
+                                errorMessage={errors.parentName?.message}
+                                variant="bordered"
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="parentTel"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                label="เบอร์โทร"
+                                placeholder="โปรดใส่เบอร์โทร"
+                                isRequired
+                                inputMode="numeric"
+                                isInvalid={!!errors.parentTel}
+                                errorMessage={errors.parentTel?.message}
+                                variant="bordered"
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="parentEmail"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                type="email"
+                                label="อีเมลของผู้ปกครอง"
+                                placeholder="example@email.com"
+                                isRequired={!useUserEmailValue}
+                                isInvalid={!!errors.parentEmail}
+                                errorMessage={errors.parentEmail?.message}
+                                variant="bordered"
+                                isDisabled={useUserEmailValue}
+                                startContent={<Mail className="w-5 h-5 text-gray-400" />}
+                            />
+                        )}
+                    />
+
+                    <Controller
+                        name="backupEmail"
+                        control={control}
+                        render={({ field }) => (
+                            <Input
+                                {...field}
+                                type="email"
+                                label="อีเมลสำรองของผู้ปกครอง (ถ้ามี) หรืออีเมลนักเรียน"
+                                placeholder="backup@email.com"
+                                isRequired={!useUserEmailValue}
+                                isInvalid={!!errors.backupEmail}
+                                errorMessage={errors.backupEmail?.message}
+                                variant="bordered"
+                                isDisabled={useUserEmailValue}
+                                startContent={<Mail className="w-5 h-5 text-gray-400" />}
+                            />
+                        )}
+                    />
+                </CardBody>
+            </Card>
+        </div>
+    );
+
+    const renderStep1 = () => {
+        if (isFetching) {
+            return (
+                <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+                </div>
+            );
+        }
+
+        // Has existing profile — show toggle between existing and new form
+        if (hasProfile && studentInfo) {
+            return (
+                <div className="space-y-4">
+                    <div className="flex gap-2">
+                        <Button
+                            variant={useExistingProfile ? "solid" : "bordered"}
+                            className={useExistingProfile ? "bg-pink-400 text-white flex-1" : "flex-1"}
+                            onPress={() => setUseExistingProfile(true)}
+                        >
+                            ใช้ข้อมูลที่มีอยู่
+                        </Button>
+                        <Button
+                            variant={!useExistingProfile ? "solid" : "bordered"}
+                            className={!useExistingProfile ? "bg-pink-400 text-white flex-1" : "flex-1"}
+                            onPress={() => {
+                                setUseExistingProfile(false);
+                                reset({
+                                    prefix: studentInfo.prefix,
+                                    studentName: studentInfo.full_name,
+                                    educationLevel: educationLevelMap[studentInfo.education_level] ?? "",
+                                    schoolName: studentInfo.school,
+                                    foodAllergy: studentInfo.food_allergies ?? "",
+                                    parentName: studentInfo.parent_name,
+                                    parentEmail: studentInfo.parent_email,
+                                    backupEmail: studentInfo.secondary_email ?? "",
+                                    useUserEmail: false,
+                                    parentTel: studentInfo.phone_number ?? "",
+                                });
+                            }}
+                        >
+                            กรอกข้อมูลใหม่
+                        </Button>
+                    </div>
+                    {useExistingProfile ? renderExistingProfile() : renderNewProfileForm()}
+                </div>
+            );
+        }
+
+        // No profile — show create form only
+        return renderNewProfileForm();
+    };
+
+    const renderStep2 = () => (
+        <div className="space-y-4">
+            <p className="text-gray-600 text-sm">เลือกรอบที่ต้องการสมัคร (เลือกได้หลายรอบ)</p>
+            <CheckboxGroup
+                value={selectedScheduleIds}
+                onValueChange={setSelectedScheduleIds}
+                className="gap-3"
+            >
+                {schedules.map((schedule) => {
+                    const spots = getAvailableSpots(schedule);
+                    const isFull = spots <= 0;
+                    return (
+                        <Checkbox
+                            key={schedule.id}
+                            value={schedule.id}
+                            isDisabled={isFull}
+                            classNames={{
+                                wrapper: "after:bg-pink-400",
+                                label: "text-sm",
+                                base: `p-3 border-2 rounded-lg transition-colors w-full max-w-none ${
+                                    selectedScheduleIds.includes(schedule.id)
+                                        ? "border-pink-400 bg-pink-50"
+                                        : "border-gray-200"
+                                } ${isFull ? "opacity-50" : ""}`,
+                            }}
+                        >
+                            <div>
+                                <p className="font-medium">{formatScheduleLabel(schedule)}</p>
+                                <p className={`text-xs mt-1 ${isFull ? "text-red-500" : "text-gray-500"}`}>
+                                    {isFull
+                                        ? "เต็มแล้ว"
+                                        : `เหลือ ${spots} ที่`}
+                                </p>
+                            </div>
+                        </Checkbox>
+                    );
+                })}
+            </CheckboxGroup>
+            {selectedScheduleIds.length > 0 && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex justify-between items-center">
+                        <span className="text-gray-600">
+                            เลือก {selectedScheduleIds.length} รอบ
+                        </span>
+                        <span className="text-xl font-bold text-pink-500">
+                            รวม {totalPrice.toLocaleString()} ฿
+                        </span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderStep3 = () => (
+        <div className="space-y-4">
+            {totalPrice > 0 && qrPayload ? (
+                <>
+                    <div className="flex flex-col items-center gap-3">
+                        <p className="text-gray-600 text-sm">สแกน QR Code เพื่อชำระเงิน</p>
+                        <div className="relative">
+                            <div className="p-1 bg-gradient-to-br from-pink-400 to-pink-300 rounded-xl shadow-lg">
+                                <div className="bg-white p-4 rounded-lg">
+                                    <QRCodeSVG value={qrPayload} level="M" className="w-48 h-48" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-center bg-pink-50/50 rounded-xl p-3 w-full border border-pink-100">
+                            <p className="text-xs text-gray-500 mb-1">PromptPay</p>
+                            <p className="text-lg font-semibold text-pink-500">
+                                {totalPrice.toLocaleString()} ฿
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                            อัพโหลดสลิปการโอนเงิน
+                        </label>
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-pink-400 transition-colors bg-gray-50">
+                            {slipPreview ? (
+                                <img
+                                    src={slipPreview}
+                                    alt="slip preview"
+                                    className="h-full object-contain rounded-lg"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center gap-2 text-gray-500">
+                                    <Upload className="w-8 h-8" />
+                                    <span className="text-sm">คลิกเพื่อเลือกรูปสลิป</span>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleSlipChange}
+                            />
+                        </label>
+                    </div>
+                </>
+            ) : (
+                <div className="text-center py-4">
+                    <p className="text-gray-600">กิจกรรมนี้ไม่มีค่าใช้จ่าย</p>
+                </div>
+            )}
+
+            <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-gray-700 mb-2">สรุปการสมัคร</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                    {schedules
+                        .filter((s) => selectedScheduleIds.includes(s.id))
+                        .map((s) => (
+                            <li key={s.id}>
+                                - {dayjs(s.event_start_at).format("DD/MM/YYYY HH:mm")} ({s.price.toLocaleString()} ฿)
+                            </li>
+                        ))}
+                </ul>
+                <div className="mt-2 pt-2 border-t border-blue-200 flex justify-between">
+                    <span className="font-medium">รวมทั้งหมด</span>
+                    <span className="font-bold text-pink-500">{totalPrice.toLocaleString()} ฿</span>
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderFooter = () => {
+        if (step === 1) {
+            if (hasProfile === false) {
+                return (
+                    <>
+                        <Button color="default" variant="flat" onPress={handleClose}>
+                            ยกเลิก
+                        </Button>
+                        <Button
+                            className="bg-pink-400 text-white"
+                            onPress={() => handleSubmit(handleCreateProfile)()}
+                            isLoading={isCreatingProfile}
+                        >
+                            บันทึกและถัดไป
+                        </Button>
+                    </>
+                );
+            }
+            return (
+                <>
+                    <Button color="default" variant="flat" onPress={handleClose}>
+                        ยกเลิก
+                    </Button>
+                    <Button
+                        className="bg-pink-400 text-white"
+                        onPress={() => setStep(2)}
+                        isDisabled={!hasProfile || isFetching}
+                    >
+                        ถัดไป
+                    </Button>
+                </>
+            );
+        }
+
+        if (step === 2) {
+            return (
+                <>
+                    <Button color="default" variant="flat" onPress={() => setStep(1)}>
+                        ย้อนกลับ
+                    </Button>
+                    <Button
+                        className="bg-pink-400 text-white"
+                        onPress={() => setStep(3)}
+                        isDisabled={selectedScheduleIds.length === 0}
+                    >
+                        ถัดไป
+                    </Button>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <Button color="default" variant="flat" onPress={() => setStep(2)} isDisabled={isSubmitting}>
+                    ย้อนกลับ
+                </Button>
+                <Button
+                    className="bg-pink-400 text-white"
+                    onPress={handleFinalSubmit}
+                    isLoading={isSubmitting}
+                    isDisabled={isSubmitting || (totalPrice > 0 && !slipFile)}
+                >
+                    ยืนยันการสมัคร
+                </Button>
+            </>
+        );
     };
 
     return (
@@ -181,354 +858,13 @@ export function ActivityRegistrationModal({
                 </ModalHeader>
 
                 <ModalBody className="py-6">
-                    {isFetching ? (
-                        <div className="flex justify-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
-                        </div>
-                    ) : hasProfile === false ? (
-                        <div className="text-center py-8">
-                            <AlertCircle className="w-16 h-16 text-orange-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                ยังไม่มีข้อมูลผู้สมัคร
-                            </h3>
-                            <p className="text-gray-500 mb-4">
-                                คุณต้องเพิ่มข้อมูลผู้สมัครก่อนจึงจะสามารถสมัครกิจกรรมได้
-                            </p>
-                            <Button
-                                color="primary"
-                                className="bg-pink-400"
-                                onPress={() => {
-                                    onClose();
-                                    window.location.href = "/profile";
-                                }}
-                            >
-                                ไปที่หน้าโปรไฟล์
-                            </Button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">ค่าสมัคร</span>
-                                    <span className="text-xl font-bold text-pink-500">
-                                        {activityPrice.toLocaleString()} ฿
-                                    </span>
-                                </div>
-                            </div>
-
-                            <RadioGroup
-                                label="เลือกผู้สมัคร"
-                                value={selectedStudentId}
-                                onValueChange={setSelectedStudentId}
-                                className="gap-3"
-                            >
-                                {studentProfiles.map((profile) => (
-                                    <Card
-                                        key={profile.id}
-                                        className={`border-2 transition-all ${
-                                            selectedStudentId === profile.id
-                                                ? "border-pink-400 bg-pink-50"
-                                                : "border-transparent hover:border-gray-200"
-                                        }`}
-                                    >
-                                        <CardBody className="p-4">
-                                            <Radio value={profile.id} className="hidden">
-                                                <div className="hidden">{profile.full_name}</div>
-                                            </Radio>
-                                            <div
-                                                className="cursor-pointer"
-                                                onClick={() => setSelectedStudentId(profile.id)}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    {selectedStudentId === profile.id && (
-                                                        <CheckCircle2 className="w-5 h-5 text-pink-500 mt-0.5" />
-                                                    )}
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-semibold text-lg">
-                                                                {profile.prefix} {profile.full_name}
-                                                            </span>
-                                                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                                                                {getEducationLevelText(
-                                                                    profile.education_level
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-gray-600 text-sm mt-1">
-                                                            {profile.school}
-                                                        </p>
-                                                        <div className="mt-2 text-sm text-gray-500">
-                                                            <p>ผู้ปกครอง: {profile.parent_name}</p>
-                                                            <p>อีเมล: {profile.parent_email}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-                                ))}
-                            </RadioGroup>
-                        </>
-                    )}
-
-                    <Card className="bg-pink-50 border-pink-100">
-                        <CardBody className="gap-4">
-                            <div className="flex items-center gap-2">
-                                <GraduationCap className="w-5 h-5 text-pink-500" />
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    ข้อมูลนักเรียน
-                                </h3>
-                            </div>
-
-                            {/* Prefix */}
-                            <Controller
-                                name="prefix"
-                                control={control}
-                                render={({ field }) => (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            คำนำหน้า <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {prefixes.map((prefix) => (
-                                                <Button
-                                                    key={prefix}
-                                                    type="button"
-                                                    variant={
-                                                        selectedPrefix === prefix
-                                                            ? "solid"
-                                                            : "bordered"
-                                                    }
-                                                    onPress={() => field.onChange(prefix)}
-                                                    className={
-                                                        selectedPrefix === prefix
-                                                            ? "bg-pink-400 text-white font-medium"
-                                                            : "font-medium"
-                                                    }
-                                                >
-                                                    {prefix}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                        {errors.prefix && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.prefix.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            {/* Student Name */}
-                            <Controller
-                                name="studentName"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        labelPlacement="outside"
-                                        label="ชื่อ-นามสกุลของนักเรียน (ภาษาไทย)"
-                                        placeholder="ระบุชื่อ-นามสกุลเป็นภาษาไทย"
-                                        isRequired
-                                        isInvalid={!!errors.studentName}
-                                        errorMessage={errors.studentName?.message}
-                                        variant="bordered"
-                                    />
-                                )}
-                            />
-
-                            {/* Education Level */}
-                            <Controller
-                                name="educationLevel"
-                                control={control}
-                                render={({ field }) => (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            ระดับการศึกษาของนักเรียน{" "}
-                                            <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                                            {educationLevels.map((level) => (
-                                                <Button
-                                                    key={level}
-                                                    type="button"
-                                                    variant={
-                                                        selectedEducationLevel === level
-                                                            ? "solid"
-                                                            : "bordered"
-                                                    }
-                                                    onPress={() => field.onChange(level)}
-                                                    className={
-                                                        selectedEducationLevel === level
-                                                            ? "bg-pink-400 text-white font-medium"
-                                                            : "font-medium"
-                                                    }
-                                                >
-                                                    {level}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                        {errors.educationLevel && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {errors.educationLevel.message}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-                            />
-
-                            {/* School Name */}
-                            <Controller
-                                name="schoolName"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        labelPlacement="outside"
-                                        label="ชื่อโรงเรียนที่กำลังศึกษาอยู่"
-                                        placeholder="โปรดสะกดชื่อโรงเรียนให้ถูกต้อง"
-                                        isRequired
-                                        isInvalid={!!errors.schoolName}
-                                        errorMessage={errors.schoolName?.message}
-                                        variant="bordered"
-                                        startContent={<School className="w-5 h-5 text-gray-400" />}
-                                    />
-                                )}
-                            />
-
-                            {/* Food Allergy */}
-                            <Controller
-                                name="foodAllergy"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        labelPlacement="outside"
-                                        label="การแพ้อาหาร"
-                                        placeholder="ระบุอาหารที่แพ้ (ถ้ามี)"
-                                        variant="bordered"
-                                        startContent={
-                                            <UtensilsCrossed className="w-5 h-5 text-gray-400" />
-                                        }
-                                    />
-                                )}
-                            />
-                        </CardBody>
-                    </Card>
-
-                    {/* Parent Information Section */}
-                    <Card className="bg-pink-50 border-pink-100">
-                        <CardBody className="gap-4">
-                            <div className="flex items-center gap-2">
-                                <User className="w-5 h-5 text-pink-500" />
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    ข้อมูลผู้ปกครอง
-                                </h3>
-                            </div>
-                            <span className="text-red-400 text-sm text-center">
-                                ** หากเป็นผู้สมัครเองให้กรอกเป็นข้อมูลของตนเอง **
-                            </span>
-                            {/* Use User Email Checkbox */}
-                            {user?.email && (
-                                <Controller
-                                    name="useUserEmail"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Checkbox
-                                            isSelected={field.value}
-                                            onValueChange={handleUseUserEmailChange}
-                                            classNames={{
-                                                wrapper: "after:bg-pink-400",
-                                                label: "text-sm md:text-base",
-                                            }}
-                                        >
-                                            ใช้อีเมลของฉัน ({user?.email})
-                                        </Checkbox>
-                                    )}
-                                />
-                            )}
-
-                            {/* Parent Name */}
-                            <Controller
-                                name="parentName"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        label="ชื่อผู้ปกครอง"
-                                        placeholder="โปรดสะกดชื่อให้ถูกต้อง"
-                                        isRequired
-                                        isInvalid={!!errors.parentName}
-                                        errorMessage={errors.parentName?.message}
-                                        variant="bordered"
-                                    />
-                                )}
-                            />
-
-                            {/* Parent Email */}
-                            <Controller
-                                name="parentEmail"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        type="email"
-                                        label="อีเมลของผู้ปกครอง"
-                                        placeholder="example@email.com"
-                                        isRequired={!useUserEmailValue}
-                                        isInvalid={!!errors.parentEmail}
-                                        errorMessage={errors.parentEmail?.message}
-                                        variant="bordered"
-                                        isDisabled={useUserEmailValue}
-                                        startContent={<Mail className="w-5 h-5 text-gray-400" />}
-                                    />
-                                )}
-                            />
-
-                            {/* Backup Email */}
-                            <Controller
-                                name="backupEmail"
-                                control={control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        type="email"
-                                        label="อีเมลสำรองของผู้ปกครอง (ถ้ามี) หรืออีเมลนักเรียน"
-                                        placeholder="backup@email.com"
-                                        isRequired={!useUserEmailValue}
-                                        isInvalid={!!errors.backupEmail}
-                                        errorMessage={errors.backupEmail?.message}
-                                        variant="bordered"
-                                        isDisabled={useUserEmailValue}
-                                        startContent={<Mail className="w-5 h-5 text-gray-400" />}
-                                    />
-                                )}
-                            />
-                        </CardBody>
-                    </Card>
+                    {renderStepIndicator()}
+                    {step === 1 && renderStep1()}
+                    {step === 2 && renderStep2()}
+                    {step === 3 && renderStep3()}
                 </ModalBody>
 
-                {hasProfile !== false && (
-                    <ModalFooter>
-                        <Button
-                            color="default"
-                            variant="flat"
-                            onPress={handleClose}
-                            isDisabled={isLoading}
-                        >
-                            ยกเลิก
-                        </Button>
-                        <Button
-                            color="primary"
-                            className="bg-pink-400"
-                            onPress={handleRegister}
-                            isLoading={isLoading}
-                            isDisabled={!selectedStudentId || isLoading}
-                        >
-                            ยืนยันการสมัคร
-                        </Button>
-                    </ModalFooter>
-                )}
+                <ModalFooter>{renderFooter()}</ModalFooter>
             </ModalContent>
         </Modal>
     );
