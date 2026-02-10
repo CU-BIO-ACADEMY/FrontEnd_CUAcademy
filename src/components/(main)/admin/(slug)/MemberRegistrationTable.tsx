@@ -17,7 +17,8 @@ import {
     useDisclosure
 } from "@heroui/react";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { FormatEmailModal }  from "@/components/(main)/admin/FormatEmailModal"
+import { FormatEmailModal } from "@/components/(main)/admin/FormatEmailModal"
+import { SlipModal } from "./SlipModal"
 import * as XLSX from "xlsx";
 
 export interface Registrant {
@@ -73,9 +74,11 @@ export function MemberRegistrationTable({
     });
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [slipTarget, setSlipTarget] = useState<Registrant | null>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const FormatModal = useDisclosure();
+    const slipModal = useDisclosure();
 
     useEffect(() => {
         debounceRef.current = setTimeout(() => {
@@ -248,7 +251,10 @@ export function MemberRegistrationTable({
                                 size="sm"
                                 variant="flat"
                                 color="secondary"
-                                onPress={() => setDeleteTarget(registrant.id)}
+                                onPress={() => {
+                                    setSlipTarget(registrant);
+                                    slipModal.onOpen();
+                                }}
                             >
                                 <i className="fa-solid fa-eye" />
                             </Button>
@@ -423,6 +429,16 @@ export function MemberRegistrationTable({
                 onClose={FormatModal.onClose}
                 onChange={FormatModal.onOpenChange}
                 id="awd"
+            />
+            <SlipModal
+                isOpen={slipModal.isOpen}
+                onClose={() => {
+                    slipModal.onClose();
+                    setSlipTarget(null);
+                }}
+                onChange={slipModal.onOpenChange}
+                date={slipTarget ? new Date(slipTarget.registered_at).toLocaleDateString("th-TH") : ""}
+                name={slipTarget?.full_name ?? ""}
             />
         </>
     );

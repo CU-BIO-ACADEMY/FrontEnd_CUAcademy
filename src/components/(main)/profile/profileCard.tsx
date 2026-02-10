@@ -22,9 +22,6 @@ export function ProfileCard({ user }: ProfileCardProps) {
                 <h2 className="text-xl font-semibold text-gray-900">
                     ข้อมูลส่วนตัวของบัญชีนี้
                 </h2>
-                <Button variant="light" color="primary" >
-                    เพิ่มเบอร์ติดต่อ
-                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -43,15 +40,6 @@ export function ProfileCard({ user }: ProfileCardProps) {
                     </label>
                     <p className="text-gray-900 pl-6">{user?.email || "Not set"}</p>
                 </div>
-
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        เบอร์โทร
-                    </label>
-                    <p className="text-gray-900 pl-6">+66 XX XXX XXXX</p>
-                </div>
-
                 <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-medium text-gray-600">
                         <MapPin className="w-4 h-4" />

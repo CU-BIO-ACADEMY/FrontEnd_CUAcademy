@@ -27,6 +27,7 @@ export const applicantSchema = z
         schoolName: z.string().min(1, "กรุณากรอกชื่อโรงเรียน"),
         foodAllergy: z.string(),
         parentName: z.string().min(1, "กรุณากรอกชื่อผู้ปกครอง"),
+        parentTel: z.string().min(1, "กรุณากรอกเบอร์โทร"),
         parentEmail: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").or(z.literal("")),
         backupEmail: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").or(z.literal("")),
         useUserEmail: z.boolean(),
@@ -81,6 +82,7 @@ export function AddApplicantModal({
         schoolName: "",
         foodAllergy: "",
         parentName: "",
+        parentTel: "",
         parentEmail: "",
         backupEmail: "",
         useUserEmail: false,
@@ -108,6 +110,7 @@ export function AddApplicantModal({
                 schoolName: "",
                 foodAllergy: "",
                 parentName: "",
+                parentTel: "",
                 parentEmail: "",
                 backupEmail: "",
                 useUserEmail: false,
@@ -362,6 +365,23 @@ export function AddApplicantModal({
                                                 label="ชื่อผู้ปกครอง"
                                                 placeholder="โปรดสะกดชื่อให้ถูกต้อง"
                                                 isRequired
+                                                isInvalid={!!errors.parentName}
+                                                errorMessage={errors.parentName?.message}
+                                                variant="bordered"
+                                            />
+                                        )}
+                                    />
+
+                                    <Controller
+                                        name="parentTel"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Input
+                                                {...field}
+                                                label="เบอร์โทร"
+                                                placeholder="โปรดใส่เบอร์โทร"
+                                                isRequired
+                                                inputMode="numeric"
                                                 isInvalid={!!errors.parentName}
                                                 errorMessage={errors.parentName?.message}
                                                 variant="bordered"

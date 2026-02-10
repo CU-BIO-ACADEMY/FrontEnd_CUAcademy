@@ -5,7 +5,7 @@ import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
 import {
     MemberRegistrationTable,
     type Registrant,
-} from "@/components/(main)/admin/MemberRegistrationTable";
+} from "@/components/(main)/admin/(slug)/MemberRegistrationTable";
 import { toast } from "sonner";
 
 const mockRegistrants: Registrant[] = [
