@@ -3,7 +3,8 @@ import { Card, CardBody, CardFooter, useDisclosure, Button, Avatar } from '@hero
 import { Progress } from '@heroui/progress'
 import { ActivityRegistrationModal } from '@/components/(main)/activity/ActivityRegistrationModal';
 import { ShareModal } from '@/components/(main)/activity/ShareModal';
-import type { ActivityScheduleDetail } from "@/services/api/ActivityService"
+import type { ActivityScheduleDetail, ActivityScheduleWithUsers } from '@/services/api/ActivityService';
+
 import dayjs from "dayjs";
 import "dayjs/locale/th"
 
@@ -17,9 +18,10 @@ interface AvatarCardProps{
     regisMax: number,
     isFull: boolean,
     data: ActivityScheduleDetail[];
+    schedules: (ActivityScheduleDetail | ActivityScheduleWithUsers)[]
 }
 
-function AvatarCard({ id, img, title, regisNow, regisMax, isFull, data }: AvatarCardProps) {
+function AvatarCard({ id, img, title, regisNow, regisMax, isFull, data, schedules }: AvatarCardProps) {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isShareOpen, onOpen: onShareOpen, onClose: onShareClose } = useDisclosure();
     const percentage = regisMax > 0 ? (regisNow / regisMax) * 100 : 0;
@@ -103,8 +105,8 @@ function AvatarCard({ id, img, title, regisNow, regisMax, isFull, data }: Avatar
                 isOpen={isModalOpen}
                 onClose={onModalClose}
                 activityId={id}
-                activityTitle=""
-                activityPrice={0}
+                activityTitle={title}
+                schedules={schedules}
             />
 
             <ShareModal

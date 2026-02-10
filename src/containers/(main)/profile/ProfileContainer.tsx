@@ -30,30 +30,27 @@ function ProfileContainer() {
     const fetchStudentInformation = useCallback(async () => {
         setIsLoading(true);
         try {
-            const exists = await api.studentInformationService.checkExists();
-            if (exists.exists) {
-                const data = await api.studentInformationService.getStudentInformation();
-                const applicant: Applicant = {
-                    id: data.id,
-                    prefix: data.prefix,
-                    studentName: data.full_name,
-                    educationLevel: educationLevelReverseMap[data.education_level],
-                    schoolName: data.school,
-                    foodAllergy: data.food_allergies || undefined,
-                    parentName: data.parent_name,
-                    parentEmail: data.parent_email,
-                    backupEmail: data.secondary_email || "",
-                    createdAt: new Date(data.created_at).toLocaleDateString("th-TH", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                    }),
-                    parentTel: data.phone_number,
-                };
-                setApplicants([applicant]);
-            }
+            const data = await api.studentInformationService.getAllStudentInformation();
+            const mappedApplicants: Applicant[] = data.map((item) => ({
+                id: item.id,
+                prefix: item.prefix,
+                studentName: item.full_name,
+                educationLevel: educationLevelReverseMap[item.education_level],
+                schoolName: item.school,
+                foodAllergy: item.food_allergies || undefined,
+                parentName: item.parent_name,
+                parentEmail: item.parent_email,
+                backupEmail: item.secondary_email || "",
+                createdAt: new Date(item.created_at).toLocaleDateString("th-TH", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                }),
+                parentTel: item.phone_number,
+            }));
+            setApplicants(mappedApplicants);
         } catch {
-            // No student information yet, that's okay
+            setApplicants([]);
         } finally {
             setIsLoading(false);
         }
@@ -66,8 +63,6 @@ function ProfileContainer() {
     const handleSubmitApplicant = async (formData: ApplicantFormData) => {
         setIsSubmitting(true);
         try {
-            const exists = await api.studentInformationService.checkExists();
-
             const payload = {
                 prefix: formData.prefix,
                 full_name: formData.studentName,
@@ -80,8 +75,8 @@ function ProfileContainer() {
                 phone_number: formData.parentTel,
             };
 
-            if (exists.exists) {
-                await api.studentInformationService.updateStudentInformation(payload);
+            if (modalMode === "edit" && editingApplicant) {
+                await api.studentInformationService.updateStudentInformation(editingApplicant.id, payload);
                 toast.success("อัพเดทข้อมูลผู้สมัครสำเร็จ");
             } else {
                 await api.studentInformationService.createStudentInformation(payload);
@@ -103,10 +98,12 @@ function ProfileContainer() {
     };
 
     const handleConfirmDelete = async () => {
+        if (!deletingApplicantId) return;
+
         setIsDeleting(true);
         try {
-            await api.studentInformationService.deleteStudentInformation();
-            setApplicants([]);
+            await api.studentInformationService.deleteStudentInformation(deletingApplicantId);
+            setApplicants((prev) => prev.filter((a) => a.id !== deletingApplicantId));
             toast.success("ลบข้อมูลผู้สมัครสำเร็จ");
             setIsConfirmModalOpen(false);
             setDeletingApplicantId(null);
@@ -139,7 +136,6 @@ function ProfileContainer() {
         setEditingApplicant(null);
     };
 
-    // Convert Applicant to form default values
     const getEditDefaultValues = (): Partial<ApplicantFormData> | undefined => {
         if (!editingApplicant) return undefined;
 
@@ -164,7 +160,6 @@ function ProfileContainer() {
     return (
         <div className="min-h-screen overflow-y-auto md:p-6">
             <div className="max-w-7xl mx-auto space-y-6 pb-8">
-                {/* Header Section */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold text-gray-900">โปรไฟล์</h1>
                 </div>
@@ -186,14 +181,10 @@ function ProfileContainer() {
                     ]}
                 />
 
-                {/* Main Content */}
                 <div className="flex gap-6 flex-col lg:flex-row">
-                    {/* Right Content Area */}
                     <div className="flex-1 space-y-6">
-                        {/* Personal Information */}
                         <ProfileCard user={user} />
 
-                        {/* Applicants Section */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
@@ -249,7 +240,6 @@ function ProfileContainer() {
                 </div>
             </div>
 
-            {/* Add Applicant Modal */}
             <AddApplicantModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
@@ -260,7 +250,6 @@ function ProfileContainer() {
                 mode={modalMode}
             />
 
-            {/* Confirm Delete Modal */}
             <ConfirmModal
                 isOpen={isConfirmModalOpen}
                 onClose={handleCancelDelete}

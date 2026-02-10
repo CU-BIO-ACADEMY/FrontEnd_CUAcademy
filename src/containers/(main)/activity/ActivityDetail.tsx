@@ -59,6 +59,7 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                             regisMax={data.schedules.reduce((sum, s) => sum + s.max_users, 0)}
                             title={data.title}
                             isFull={isFull}
+                            schedules={data.schedules}
                             data={data.schedules}
                         />
                         <div className="mt-3">
@@ -76,8 +77,8 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                 isOpen={isModalOpen}
                 onClose={onModalClose}
                 activityId={id}
-                activityTitle=""
-                activityPrice={0}
+                activityTitle={data.title}
+                schedules={data.schedules}
             />
         </>
     );

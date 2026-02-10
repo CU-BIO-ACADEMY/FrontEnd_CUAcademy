@@ -109,6 +109,8 @@ export type Activity = ActivityListItem;
 // ========== DTO Types ==========
 export interface JoinActivityDTO {
     student_information_id: string;
+    schedule_ids: string[];
+    slip?: File;
 }
 
 export interface CreateActivityScheduleDTO {
@@ -168,7 +170,13 @@ export class ActivityService extends BaseService {
     }
 
     async joinActivity(activityId: string, data: JoinActivityDTO): Promise<{ message: string }> {
-        return this.post<{ message: string }>(`/${activityId}/join`, data);
+        const formData = new FormData();
+        formData.append("student_information_id", data.student_information_id);
+        formData.append("schedule_ids", JSON.stringify(data.schedule_ids));
+        if (data.slip) {
+            formData.append("slip", data.slip);
+        }
+        return this.postWithForm<{ message: string }>(`/${activityId}/join`, formData);
     }
 
     async approveActivity(activityId: string): Promise<{ message: string }> {

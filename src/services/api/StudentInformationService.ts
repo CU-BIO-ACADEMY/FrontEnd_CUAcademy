@@ -43,6 +43,10 @@ export class StudentInformationService extends BaseService {
         return this.get<StudentInformation>("/");
     }
 
+    async getAllStudentInformation(): Promise<StudentInformation[]> {
+        return this.get<StudentInformation[]>("/all");
+    }
+
     async createStudentInformation(
         data: CreateStudentInformationDTO
     ): Promise<{ message: string }> {
@@ -50,13 +54,14 @@ export class StudentInformationService extends BaseService {
     }
 
     async updateStudentInformation(
+        id: string,
         data: UpdateStudentInformationDTO
     ): Promise<{ message: string }> {
-        return this.put<{ message: string }>("/", data);
+        return this.put<{ message: string }>(`/${id}`, data);
     }
 
-    async deleteStudentInformation(): Promise<{ message: string }> {
-        return this.delete<{ message: string }>("/");
+    async deleteStudentInformation(id: string): Promise<{ message: string }> {
+        return this.delete<{ message: string }>(`/${id}`);
     }
 
     async checkExists(): Promise<StudentInformationExistsResponse> {
