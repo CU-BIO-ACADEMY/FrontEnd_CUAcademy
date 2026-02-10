@@ -21,6 +21,10 @@ export interface RegisteredUser {
     id: string;
     schedule_id: string;
     student_information_id: string;
+    payment_status: "pending" | "approved" | "rejected";
+    payment_file_id: string | null;
+    payment_file_url: string | null;
+    created_at: string;
     student_info: StudentInfo | null;
     user: User | null;
 }
@@ -185,5 +189,13 @@ export class ActivityService extends BaseService {
 
     async getActivityById(activityId: string): Promise<ActivityDetail> {
         return this.get<ActivityDetail>(`/${activityId}`);
+    }
+
+    async updateRegistrationStatus(registrationId: string, status: "approved" | "rejected"): Promise<{ message: string }> {
+        return this.patch<{ message: string }>(`/registrations/${registrationId}/status`, { status });
+    }
+
+    async getFileUrl(fileId: string): Promise<{ url: string }> {
+        return this.get<{ url: string }>(`/files/${fileId}/url`);
     }
 }
