@@ -25,7 +25,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
     const maxUsers = firstSchedule?.max_users ?? 0;
     const eventStartAt = firstSchedule?.event_start_at ?? activity.next_event_start_at ?? activity.registration_open_at;
     const price = activity.price ?? firstSchedule?.price ?? 0;
-    
+
     const value = maxUsers > 0 ? (currentParticipants / maxUsers) * 100 : 0;
     const router = useRouter();
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();

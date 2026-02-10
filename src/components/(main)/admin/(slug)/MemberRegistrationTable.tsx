@@ -28,6 +28,7 @@ export interface Registrant {
     school: string;
     education_level: string;
     registered_at: string;
+    event_dates: string[];
     status: "pending" | "approved";
 }
 
@@ -48,6 +49,7 @@ const columns = [
     { key: "email", label: "อีเมล", sortable: true },
     { key: "school", label: "โรงเรียน", sortable: true },
     { key: "education_level", label: "ระดับชั้น", sortable: true },
+    { key: "event_dates", label: "วันที่มาทำกิจกรรม", sortable: false },
     { key: "registered_at", label: "วันที่สมัคร", sortable: true },
     { key: "status", label: "สถานะ", sortable: true },
     { key: "actions", label: "การดำเนินการ", sortable: false },
@@ -192,6 +194,16 @@ export function MemberRegistrationTable({
                 return registrant.school;
             case "education_level":
                 return registrant.education_level;
+            case "event_dates":
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        {registrant.event_dates.map((date, i) => (
+                            <span key={i} className="text-sm">
+                                {new Date(date).toLocaleDateString("th-TH")}
+                            </span>
+                        ))}
+                    </div>
+                );
             case "registered_at":
                 return new Date(registrant.registered_at).toLocaleDateString("th-TH");
             case "status":
@@ -404,7 +416,7 @@ export function MemberRegistrationTable({
                         {(item) => (
                             <TableRow key={item.id}>
                                 {(columnKey) => (
-                                    <TableCell className="whitespace-nowrap">
+                                    <TableCell className={columnKey === "event_dates" ? "" : "whitespace-nowrap"}>
                                         {renderCell(item, columnKey)}
                                     </TableCell>
                                 )}
