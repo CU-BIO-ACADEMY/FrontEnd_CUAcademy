@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 
 // Zod Schema
-const applicantSchema = z
+export const applicantSchema = z
     .object({
         prefix: z.string().min(1, "กรุณาเลือกคำนำหน้า"),
         studentName: z.string().min(1, "กรุณากรอกชื่อ-นามสกุลนักเรียน"),
@@ -99,7 +99,6 @@ export function AddApplicantModal({
         defaultValues: getDefaultValues(),
     });
 
-    // Reset form when modal opens with defaultValues (for edit mode)
     useEffect(() => {
         if (isOpen) {
             reset({
@@ -330,7 +329,9 @@ export function AddApplicantModal({
                                             ข้อมูลผู้ปกครอง
                                         </h3>
                                     </div>
-                                    <span className="text-red-400 text-sm text-center">** หากเป็นผู้สมัครเองให้กรอกเป็นข้อมูลของตนเอง **</span>
+                                    <span className="text-red-400 text-sm text-center">
+                                        ** หากเป็นผู้สมัครเองให้กรอกเป็นข้อมูลของตนเอง **
+                                    </span>
                                     {/* Use User Email Checkbox */}
                                     {userEmail && (
                                         <Controller
@@ -340,7 +341,10 @@ export function AddApplicantModal({
                                                 <Checkbox
                                                     isSelected={field.value}
                                                     onValueChange={handleUseUserEmailChange}
-                                                    classNames={{ wrapper: "after:bg-pink-400", label:"text-sm md:text-base" }}
+                                                    classNames={{
+                                                        wrapper: "after:bg-pink-400",
+                                                        label: "text-sm md:text-base",
+                                                    }}
                                                 >
                                                     ใช้อีเมลของฉัน ({userEmail})
                                                 </Checkbox>
