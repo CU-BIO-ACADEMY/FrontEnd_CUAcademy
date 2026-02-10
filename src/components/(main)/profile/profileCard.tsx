@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { Role } from "@/types/user";
 import type { User as UserType } from "@/types/user";
-import { Button } from "@heroui/react";
 
 interface ProfileCardProps {
     user: UserType | null;

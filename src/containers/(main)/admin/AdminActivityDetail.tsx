@@ -18,6 +18,7 @@ const mockRegistrants: Registrant[] = [
         school: "โรงเรียนสาธิตจุฬาฯ",
         education_level: "ม. 4",
         registered_at: "2025-06-01T10:00:00Z",
+        event_dates: ["2025-07-10T09:00:00Z", "2025-07-11T09:00:00Z", "2025-07-12T09:00:00Z"],
         status: "approved",
     },
     {
@@ -27,6 +28,7 @@ const mockRegistrants: Registrant[] = [
         school: "โรงเรียนเตรียมอุดมศึกษา",
         education_level: "ม. 5",
         registered_at: "2025-06-02T14:30:00Z",
+        event_dates: ["2025-07-10T09:00:00Z"],
         status: "pending",
     },
     {
@@ -36,6 +38,7 @@ const mockRegistrants: Registrant[] = [
         school: "โรงเรียนบดินทรเดชา",
         education_level: "ม. 6",
         registered_at: "2025-06-03T09:15:00Z",
+        event_dates: ["2025-07-11T09:00:00Z", "2025-07-12T09:00:00Z"],
         status: "pending",
     },
     {
@@ -45,6 +48,7 @@ const mockRegistrants: Registrant[] = [
         school: "โรงเรียนสาธิตจุฬาฯ",
         education_level: "ม. 3",
         registered_at: "2025-06-04T11:00:00Z",
+        event_dates: ["2025-07-10T09:00:00Z", "2025-07-12T09:00:00Z"],
         status: "approved",
     },
     {
@@ -54,6 +58,7 @@ const mockRegistrants: Registrant[] = [
         school: "โรงเรียนสวนกุหลาบ",
         education_level: "ม. 4",
         registered_at: "2025-06-05T16:45:00Z",
+        event_dates: ["2025-07-10T09:00:00Z", "2025-07-11T09:00:00Z"],
         status: "pending",
     },
 ];

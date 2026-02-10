@@ -22,6 +22,7 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
 
     if (!data) return <div>กำลังโหลด</div>;
 
+    console.log(data.schedules);
     const isFull = false;
     const mockDiscText =
         "Illum illum praesent dolor euismod feugiat magna erat amet zzril lorem et amet justo consequat at no voluptua aliquyam eos ullamcorper gubergren eum qui feugait accusam vero sanctus justo sit duis et lobortis duis nonumy sed amet aliquyam ut sadipscing et consetetur sed soluta aliquyam et amet labore dolore dolor at lorem accumsan amet dolore magna sed stet dolor suscipit facilisi et lorem ipsum lorem ut consetetur ea et eos commodo labore euismod invidunt voluptua aliquyam justo diam lorem amet lorem nonumy vero ut et clita dolor augue dolore consequat aliquam adipiscing nibh rebum justo aliquyam nonummy eirmod option lobortis nonumy ut molestie sadipscing et in elitr molestie duo dolor dignissim ut consequat diam praesent blandit amet consequat dolore elitr aliquam nulla consequat dolor invidunt dolores nibh clita vel aliquyam ut magna gubergren consetetur voluptua duo invidunt zzril consetetur rebum assum sadipscing dolore erat at accusam lorem amet illum commodo euismod aliquyam takimata takimata magna sadipscing accusam diam eos est labore aliquyam invidunt eirmod dolores accumsan vero assum accusam ipsum ex invidunt tation amet odio no justo nisl justo sed duo diam aliquyam labore invidunt sanctus takimata dolor stet stet et sit nonummy iusto aliquyam facilisi vero lobortis clita nonumy";
@@ -59,6 +60,7 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                             title={data.title}
                             isFull={isFull}
                             schedules={data.schedules}
+                            data={data.schedules}
                         />
                         <div className="mt-3">
                             <h3 className="text-lg font-semibold text-gray-800">รายชื่อผู้สมัคร</h3>
