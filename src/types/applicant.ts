@@ -10,6 +10,7 @@ export interface Applicant {
     backupEmail: string;
     createdAt: string;
     status?: "pending" | "approved" | "rejected";
+    parentTel: string
 }
 
 export const educationLevelMap: Record<string, number> = {

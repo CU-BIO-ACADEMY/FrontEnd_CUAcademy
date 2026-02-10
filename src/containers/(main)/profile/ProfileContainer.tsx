@@ -3,11 +3,11 @@ import { useEffect, useState, useCallback } from "react";
 import { ProfileCard } from "@/components/(main)/profile/profileCard";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@heroui/react";
+import { UserPlus, Users } from "lucide-react";
 import {
-    UserPlus,
-    Users
-} from "lucide-react";
-import { AddApplicantModal, type ApplicantFormData } from "@/components/(main)/profile/AddApplicantModal";
+    AddApplicantModal,
+    type ApplicantFormData,
+} from "@/components/(main)/profile/AddApplicantModal";
 import { ApplicantCard } from "@/components/(main)/profile/ApplicantCard";
 import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
@@ -48,6 +48,7 @@ function ProfileContainer() {
                         month: "long",
                         day: "numeric",
                     }),
+                    parentTel: data.phone_number,
                 };
                 setApplicants([applicant]);
             }
@@ -76,6 +77,7 @@ function ProfileContainer() {
                 parent_name: formData.parentName,
                 parent_email: formData.parentEmail,
                 secondary_email: formData.backupEmail || undefined,
+                phone_number: formData.parentTel,
             };
 
             if (exists.exists) {
@@ -141,8 +143,9 @@ function ProfileContainer() {
     const getEditDefaultValues = (): Partial<ApplicantFormData> | undefined => {
         if (!editingApplicant) return undefined;
 
-        const useUserEmail = editingApplicant.parentEmail === user?.email &&
-                            editingApplicant.backupEmail === user?.email;
+        const useUserEmail =
+            editingApplicant.parentEmail === user?.email &&
+            editingApplicant.backupEmail === user?.email;
 
         return {
             prefix: editingApplicant.prefix,
@@ -154,6 +157,7 @@ function ProfileContainer() {
             parentEmail: editingApplicant.parentEmail,
             backupEmail: editingApplicant.backupEmail,
             useUserEmail,
+            parentTel: editingApplicant.parentTel,
         };
     };
 
@@ -165,15 +169,25 @@ function ProfileContainer() {
                     <h1 className="text-3xl font-bold text-gray-900">โปรไฟล์</h1>
                 </div>
 
-                <ActivityStats stats={[
-                    { label: "กิจกรรมที่เข้าร่วมทั้งหมด", value: 12, change: "+3 เดือนนี้" },
-                    { label: "จำนวน Credit", value: user?.balance || 0, change: "+12 เดือนนี้" },
-                    { label: "จำนวนข้อมูลผู้สมัคร", value: applicants.length, change: "", changeColor: "text-blue-600" },
-                ]} />
+                <ActivityStats
+                    stats={[
+                        { label: "กิจกรรมที่เข้าร่วมทั้งหมด", value: 12, change: "+3 เดือนนี้" },
+                        {
+                            label: "จำนวน Credit",
+                            value: user?.balance || 0,
+                            change: "+12 เดือนนี้",
+                        },
+                        {
+                            label: "จำนวนข้อมูลผู้สมัคร",
+                            value: applicants.length,
+                            change: "",
+                            changeColor: "text-blue-600",
+                        },
+                    ]}
+                />
 
                 {/* Main Content */}
                 <div className="flex gap-6 flex-col lg:flex-row">
-
                     {/* Right Content Area */}
                     <div className="flex-1 space-y-6">
                         {/* Personal Information */}
