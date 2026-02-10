@@ -11,6 +11,7 @@ export interface StudentInformation {
     parent_name: string;
     parent_email: string;
     secondary_email: string | null;
+    phone_number: string;
     created_at: string;
     updated_at: string;
 }
@@ -24,6 +25,7 @@ export interface CreateStudentInformationDTO {
     parent_name: string;
     parent_email: string;
     secondary_email?: string;
+    phone_number: string;
 }
 
 export interface UpdateStudentInformationDTO extends Partial<CreateStudentInformationDTO> {}
@@ -41,11 +43,15 @@ export class StudentInformationService extends BaseService {
         return this.get<StudentInformation>("/");
     }
 
-    async createStudentInformation(data: CreateStudentInformationDTO): Promise<{ message: string }> {
+    async createStudentInformation(
+        data: CreateStudentInformationDTO
+    ): Promise<{ message: string }> {
         return this.post<{ message: string }>("/", data);
     }
 
-    async updateStudentInformation(data: UpdateStudentInformationDTO): Promise<{ message: string }> {
+    async updateStudentInformation(
+        data: UpdateStudentInformationDTO
+    ): Promise<{ message: string }> {
         return this.put<{ message: string }>("/", data);
     }
 
