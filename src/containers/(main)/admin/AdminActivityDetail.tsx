@@ -117,6 +117,7 @@ function AdminActivityDetail({ id }: { id: string }) {
                     onSendEmail={handleSendEmail}
                     onSendEmailAll={handleSendEmailAll}
                     onDelete={handleDelete}
+                    formatEmail=""
                 />
             </div>
         </div>

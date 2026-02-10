@@ -14,8 +14,10 @@ import {
     Pagination,
     Tooltip,
     SortDescriptor,
+    useDisclosure
 } from "@heroui/react";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
+import { FormatEmailModal }  from "@/components/(main)/admin/FormatEmailModal"
 import * as XLSX from "xlsx";
 
 export interface Registrant {
@@ -35,6 +37,7 @@ interface MemberRegistrationTableProps {
     onSendEmail?: (id: string) => void;
     onSendEmailAll?: (ids: string[]) => void;
     onDelete?: (id: string) => void;
+    formatEmail: string;
 }
 
 type StatusFilter = "all" | "approved" | "pending";
@@ -58,6 +61,7 @@ export function MemberRegistrationTable({
     onSendEmail,
     onSendEmailAll,
     onDelete,
+    formatEmail = ""
 }: MemberRegistrationTableProps) {
     const [searchInput, setSearchInput] = useState("");
     const [debouncedFilter, setDebouncedFilter] = useState("");
@@ -70,6 +74,8 @@ export function MemberRegistrationTable({
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const FormatModal = useDisclosure();
 
     useEffect(() => {
         debounceRef.current = setTimeout(() => {
@@ -143,6 +149,10 @@ export function MemberRegistrationTable({
         setDeleteTarget(null);
     };
 
+    const handleOpenFormatModal = () => {
+        FormatModal.onOpen();
+    }
+
     const approvedIds = useMemo(
         () => registrants.filter((r) => r.status === "approved").map((r) => r.id),
         [registrants]
@@ -214,7 +224,7 @@ export function MemberRegistrationTable({
                                     size="sm"
                                     variant="flat"
                                     color="primary"
-                                    isDisabled={registrant.status === "pending"}
+                                    isDisabled={registrant.status === "pending" || formatEmail === ""}
                                     onPress={() => onSendEmail?.(registrant.id)}
                                 >
                                     <i className="fa-solid fa-envelope" />
@@ -230,6 +240,17 @@ export function MemberRegistrationTable({
                                 onPress={() => setDeleteTarget(registrant.id)}
                             >
                                 <i className="fa-solid fa-trash" />
+                            </Button>
+                        </Tooltip>
+                        <Tooltip content="ดูสลิป">
+                            <Button
+                                isIconOnly
+                                size="sm"
+                                variant="flat"
+                                color="secondary"
+                                onPress={() => setDeleteTarget(registrant.id)}
+                            >
+                                <i className="fa-solid fa-eye" />
                             </Button>
                         </Tooltip>
                     </div>
@@ -291,9 +312,19 @@ export function MemberRegistrationTable({
                             color="primary"
                             startContent={<i className="fa-solid fa-envelope" />}
                             isDisabled={approvedIds.length === 0}
-                            onPress={handleSendEmailAll}
+                            onPress={handleOpenFormatModal}
                         >
-                            ส่งอีเมลทั้งหมด ({approvedIds.length})
+                           สร้างรูปแบบ Email
+                        </Button>
+                        <Button
+                                size="sm"
+                                variant="flat"
+                                color="primary"
+                                startContent={<i className="fa-solid fa-envelope" />}
+                                isDisabled={approvedIds.length === 0 || formatEmail === ""}
+                                onPress={handleSendEmailAll}
+                            >
+                                ส่งอีเมลทั้งหมด ({approvedIds.length})
                         </Button>
                         <Button
                             size="sm"
@@ -308,7 +339,7 @@ export function MemberRegistrationTable({
                 </div>
             </div>
         ),
-        [searchInput, statusFilter, filteredRegistrants.length, onStatusFilterChange, handleExportExcel, approvedIds.length, handleSendEmailAll]
+        [searchInput, statusFilter, filteredRegistrants.length,handleOpenFormatModal, onStatusFilterChange, handleExportExcel, approvedIds.length, handleSendEmailAll]
     );
 
     const bottomContent = useMemo(
@@ -386,6 +417,12 @@ export function MemberRegistrationTable({
                 confirmText="ลบ"
                 confirmColor="danger"
                 isLoading={isDeleting}
+            />
+            <FormatEmailModal
+                isOpen={FormatModal.isOpen}
+                onClose={FormatModal.onClose}
+                onChange={FormatModal.onOpenChange}
+                id="awd"
             />
         </>
     );
