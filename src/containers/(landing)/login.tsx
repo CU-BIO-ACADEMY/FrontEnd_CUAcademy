@@ -1,13 +1,22 @@
-'use client'
-import React from 'react'
+"use client";
+
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@heroui/react";
-import { Image } from '@heroui/react';
-import { useRouter } from 'next/navigation';
+import { Image } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 function LoginContainer() {
-    const { login } = useAuth();
+    const { user, loading, login } = useAuth();
     const router = useRouter();
+
+    useEffect(() => {
+        if (loading) return;
+
+        if (user) {
+            router.push("/activity");
+        }
+    }, [user, loading]);
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-pink-50 via-white to-pink-100">
@@ -23,7 +32,14 @@ function LoginContainer() {
                 <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 md:p-12 border border-pink-100">
                     {/* Logo or Icon */}
                     <div className="flex justify-center mb-8">
-                         <Image onClick={() => router.push('/home')} src={`/logo/logo2.png`} alt={`logo`} width={`256`} height={'128'} className={`object-contain cursor-pointer`} />
+                        <Image
+                            onClick={() => router.push("/activity")}
+                            src={`/logo/logo2.png`}
+                            alt={`logo`}
+                            width={`256`}
+                            height={"128"}
+                            className={`object-contain cursor-pointer`}
+                        />
                     </div>
 
                     {/* Title */}
@@ -31,9 +47,7 @@ function LoginContainer() {
                         <h1 className="text-3xl font-bold bg-linear-to-br from-pink-500 to-pink-400 bg-clip-text text-transparent mb-2">
                             ยินดีต้อนรับ
                         </h1>
-                        <p className="text-gray-500 text-sm">
-                            เข้าสู่ระบบเพื่อเริ่มต้นใช้งาน
-                        </p>
+                        <p className="text-gray-500 text-sm">เข้าสู่ระบบเพื่อเริ่มต้นใช้งาน</p>
                     </div>
 
                     {/* Login Button */}
@@ -50,14 +64,18 @@ function LoginContainer() {
                     <p className="text-center text-gray-400 text-xs mt-8">
                         การเข้าสู่ระบบแสดงว่าคุณยอมรับ
                         <br />
-                        <span className="text-pink-400 hover:text-pink-500 cursor-pointer">เงื่อนไขการใช้งาน</span>
-                        {' '}และ{' '}
-                        <span className="text-pink-400 hover:text-pink-500 cursor-pointer">นโยบายความเป็นส่วนตัว</span>
+                        <span className="text-pink-400 hover:text-pink-500 cursor-pointer">
+                            เงื่อนไขการใช้งาน
+                        </span>{" "}
+                        และ{" "}
+                        <span className="text-pink-400 hover:text-pink-500 cursor-pointer">
+                            นโยบายความเป็นส่วนตัว
+                        </span>
                     </p>
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default LoginContainer
+export default LoginContainer;
