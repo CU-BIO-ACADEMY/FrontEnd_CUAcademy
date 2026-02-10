@@ -13,6 +13,7 @@ import {
     CheckboxGroup,
     Radio,
     RadioGroup,
+    Image
 } from "@heroui/react";
 import {
     GraduationCap,
@@ -215,7 +216,7 @@ export function ActivityRegistrationModal({
 
             const result = await api.studentInformationService.createStudentInformation(payload);
             toast.success("บันทึกข้อมูลสำเร็จ");
-            
+
             const infos = await api.studentInformationService.getAllStudentInformation();
             setStudentInfos(infos);
             setStudentInfo(infos[infos.length - 1]);
@@ -260,7 +261,7 @@ export function ActivityRegistrationModal({
         setIsSubmitting(true);
         try {
             let studentInfoId: string;
-            
+
             if (selectedProfileId === "new") {
                 // Create new profile first
                 const formData = watch();
@@ -663,7 +664,7 @@ export function ActivityRegistrationModal({
                             <User className="w-5 h-5 text-blue-500" />
                             <h3 className="text-lg font-semibold text-gray-900">เลือกผู้สมัคร</h3>
                         </div>
-                        
+
                         <RadioGroup
                             value={selectedProfileId}
                             onValueChange={handleProfileSelection}
@@ -708,7 +709,7 @@ export function ActivityRegistrationModal({
             <CheckboxGroup
                 value={selectedScheduleIds}
                 onValueChange={setSelectedScheduleIds}
-                className="gap-3"
+                className=""
             >
                 {schedules.map((schedule) => {
                     const spots = getAvailableSpots(schedule);
@@ -721,7 +722,7 @@ export function ActivityRegistrationModal({
                             classNames={{
                                 wrapper: "after:bg-pink-400",
                                 label: "text-sm",
-                                base: `p-3 border-2 rounded-lg transition-colors w-full max-w-none ${
+                                base: `p-3 border-2 rounded-lg mb-2 transition-colors w-full max-w-none ${
                                     selectedScheduleIds.includes(schedule.id)
                                         ? "border-pink-400 bg-pink-50"
                                         : "border-gray-200"
@@ -764,15 +765,45 @@ export function ActivityRegistrationModal({
                         <div className="relative">
                             <div className="p-1 bg-gradient-to-br from-pink-400 to-pink-300 rounded-xl shadow-lg">
                                 <div className="bg-white p-4 rounded-lg">
-                                    <QRCodeSVG value={qrPayload} level="M" className="w-48 h-48" />
+                                    <Image src="/bank.jpg" alt="bank" className="w-80"/>
                                 </div>
                             </div>
                         </div>
-                        <div className="text-center bg-pink-50/50 rounded-xl p-3 w-full border border-pink-100">
-                            <p className="text-xs text-gray-500 mb-1">PromptPay</p>
-                            <p className="text-lg font-semibold text-pink-500">
-                                {totalPrice.toLocaleString()} ฿
+                        <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-4 w-full border border-pink-200 shadow-sm flex flex-col gap-1">
+                            <div className="flex items-center justify-center gap-2 mb-1">
+                                <div className="h-px flex-1 bg-pink-200" />
+                                <p className="text-sm font-medium text-pink-400 tracking-wide">ธนาคารไทยพาณิชย์</p>
+                                <div className="h-px flex-1 bg-pink-200" />
+                            </div>
+
+                            <p className="text-center text-sm text-gray-500">
+                                รศ.ดร.ชัชวาล ใจซื่อกุล / รศ.ดร.สิทธิพร ภัทรดิลกรัตน์
                             </p>
+
+                            <p className="text-center text-xs text-gray-400">สาขา สยามสแควร์</p>
+
+                            <div className="mt-2 flex items-center justify-between bg-white/70 rounded-xl px-4 py-2 border border-pink-100">
+                                <div className="text-sm font-mono font-medium text-gray-600 tracking-wider flex flex-col md:flex-row gap-2 items-start md:items-center">
+                                    <span>เลขบัญชี: 414-147-848-7</span>
+                                    <button
+                                        onClick={() => {
+                                            navigator.clipboard.writeText("414-147-848-7");
+                                            // optional: toast หรือ state feedback
+                                        }}
+                                        className="flex items-center gap-1 text-xs text-pink-400 hover:text-pink-600 bg-pink-100 hover:bg-pink-200 transition-colors px-2 py-1 rounded-lg"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                        คัดลอก
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-base font-bold text-pink-500">
+                                        {totalPrice.toLocaleString()} ฿
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -830,7 +861,7 @@ export function ActivityRegistrationModal({
     const renderFooter = () => {
         if (step === 1) {
             const isNewProfile = selectedProfileId === "new";
-            
+
             // ถ้าเลือกสร้างใหม่ ต้องกรอก form ก่อน
             if (isNewProfile) {
                 return (
@@ -848,7 +879,7 @@ export function ActivityRegistrationModal({
                     </>
                 );
             }
-            
+
             // ถ้าเลือก profile ที่มีอยู่ ไป step 2 ได้เลย
             return (
                 <>
