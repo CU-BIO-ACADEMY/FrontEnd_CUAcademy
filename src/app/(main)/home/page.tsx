@@ -1,9 +1,8 @@
-import React from "react"
+// import HomeContainer from "@/containers/(main)/home/HomeContainer";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <>
-        Home
-    </>
-  );
+    redirect("/activity")
+
+    // return <HomeContainer />;
 }

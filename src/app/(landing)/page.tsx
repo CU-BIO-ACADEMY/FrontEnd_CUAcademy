@@ -1,9 +1,5 @@
-import React from "react"
+import LoginContainer from "@/containers/(landing)/login";
 
 export default function Landing() {
-  return (
-    <>
-        Nanodwdg
-    </>
-  );
+    return <LoginContainer />;
 }
