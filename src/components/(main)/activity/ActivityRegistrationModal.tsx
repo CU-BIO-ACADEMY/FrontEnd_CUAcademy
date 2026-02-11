@@ -359,14 +359,6 @@ export function ActivityRegistrationModal({
 
     const renderNewProfileForm = (isDisabled: boolean = false) => (
         <div className="space-y-4">
-            {!hasProfile && (
-                <div className="text-center py-2">
-                    <AlertCircle className="w-12 h-12 text-orange-400 mx-auto mb-2" />
-                    <p className="text-gray-500 text-sm">
-                        กรุณากรอกข้อมูลผู้สมัครก่อนดำเนินการต่อ
-                    </p>
-                </div>
-            )}
 
             <Card className={`bg-pink-50 border-pink-100 ${isDisabled ? "opacity-60" : ""}`}>
                 <CardBody className="gap-4">
@@ -761,7 +753,7 @@ export function ActivityRegistrationModal({
             {totalPrice > 0 && qrPayload ? (
                 <>
                     <div className="flex flex-col items-center gap-3">
-                        <p className="text-gray-600 text-sm">สแกน QR Code เพื่อชำระเงิน</p>
+                        <p className="text-gray-600 text-sm">โอนเงินผ่านธนาคาร</p>
                         <div className="relative">
                             <div className="p-1 bg-gradient-to-br from-pink-400 to-pink-300 rounded-xl shadow-lg">
                                 <div className="bg-white p-4 rounded-lg">

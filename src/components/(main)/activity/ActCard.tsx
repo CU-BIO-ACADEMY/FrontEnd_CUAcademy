@@ -27,11 +27,18 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
         activity.schedules.map((item) => hh += item.max_users)
         return hh
     }
+    const regisNow = () => {
+        let hh = 0
+        activity.schedules.map((item) => hh += item.users_registered)
+        return hh
+    }
+    currentParticipants = regisNow();
     const maxUsers = regisMax();
     const eventStartAt = firstSchedule?.event_start_at ?? activity.next_event_start_at ?? activity.registration_open_at;
     const price = activity.price ?? firstSchedule?.price ?? 0;
 
     const value = maxUsers > 0 ? (currentParticipants / maxUsers) * 100 : 0;
+
     const router = useRouter();
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
 
@@ -70,7 +77,7 @@ export function ActivityCard({ activity, currentParticipants = 0, onRegisterSucc
                             </div>
                             <Progress
                                 classNames={{ indicator: "bg-[var(--pink2)]" }}
-                                value={value}
+                                value={(currentParticipants/maxUsers)*100}
                             />
                         </div>
                         <div
