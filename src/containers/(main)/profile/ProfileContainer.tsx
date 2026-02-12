@@ -211,12 +211,6 @@ function ProfileContainer() {
 
                 <ActivityStats
                     stats={[
-                        { label: "กิจกรรมที่เข้าร่วมทั้งหมด", value: 12, change: "+3 เดือนนี้" },
-                        {
-                            label: "จำนวน Credit",
-                            value: user?.balance || 0,
-                            change: "+12 เดือนนี้",
-                        },
                         {
                             label: "จำนวนข้อมูลผู้สมัคร",
                             value: applicants.length,
