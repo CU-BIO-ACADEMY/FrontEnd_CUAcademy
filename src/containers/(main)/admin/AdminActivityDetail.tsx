@@ -34,6 +34,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
         statuses: ("pending" | "approved" | "rejected")[];
         slip_url: string | null;
         total_amount: number;
+        food_allergies: string;
     }>();
 
     data.schedules.forEach((schedule) => {
@@ -63,6 +64,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
                     statuses: [user.payment_status],
                     slip_url: user.payment_file_url,
                     total_amount: schedule.price,
+                    food_allergies: user.student_info.food_allergies
                 });
             }
         });
@@ -94,6 +96,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
             status,
             slip_url: student.slip_url,
             amount: student.total_amount,
+            food_allergies: student.food_allergies
         };
     });
 };

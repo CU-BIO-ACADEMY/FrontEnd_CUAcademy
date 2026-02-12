@@ -32,6 +32,7 @@ export interface Registrant {
     status: "pending" | "approved" | "rejected";
     slip_url?: string | null;
     amount?: number;
+    food_allergies: string;
 }
 
 interface MemberRegistrationTableProps {
@@ -54,6 +55,7 @@ const columns = [
     { key: "email", label: "อีเมล", sortable: true },
     { key: "school", label: "โรงเรียน", sortable: true },
     { key: "education_level", label: "ระดับชั้น", sortable: true },
+    { key: "food_allergies", label: "อาหารที่แพ้", sortable: true },
     { key: "event_dates", label: "วันที่มาทำกิจกรรม", sortable: false },
     { key: "registered_at", label: "วันที่สมัคร", sortable: true },
     { key: "status", label: "สถานะ", sortable: true },
@@ -74,7 +76,6 @@ export function MemberRegistrationTable({
     activityId,
     onEmailTemplateSaved,
 }: MemberRegistrationTableProps) {
-    console.log(registrants);
     const [searchInput, setSearchInput] = useState("");
     const [debouncedFilter, setDebouncedFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -191,6 +192,7 @@ export function MemberRegistrationTable({
             "อีเมล": r.email,
             "โรงเรียน": r.school,
             "ระดับชั้น": r.education_level,
+            "อาหารที่แพ้": r.food_allergies || "-",
             "วันที่มาทำกิจกรรม": r.event_dates
                 .map((d) => new Date(d).toLocaleDateString("th-TH"))
                 .join(", "),
@@ -226,6 +228,8 @@ export function MemberRegistrationTable({
                 return registrant.school;
             case "education_level":
                 return registrant.education_level;
+            case "food_allergies":
+                return registrant.food_allergies || "-";
             case "event_dates":
                 return (
                     <div className="flex flex-col gap-0.5">
@@ -431,7 +435,6 @@ export function MemberRegistrationTable({
             ) : null,
         [page, pages]
     );
-
     return (
         <>
             <div className="overflow-x-auto">

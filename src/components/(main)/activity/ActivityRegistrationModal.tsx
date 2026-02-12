@@ -750,7 +750,7 @@ export function ActivityRegistrationModal({
 
     const renderStep3 = () => (
         <div className="space-y-4">
-            {totalPrice > 0 && qrPayload ? (
+            {totalPrice > 0 ? (
                 <>
                     <div className="flex flex-col items-center gap-3">
                         <p className="text-gray-600 text-sm">โอนเงินผ่านธนาคาร</p>
