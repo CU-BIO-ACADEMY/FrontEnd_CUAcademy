@@ -14,6 +14,7 @@ export interface StudentInfo {
     prefix: string;
     full_name: string;
     education_level: number;
+    food_allergies: string;
     school: string;
 }
 
@@ -88,7 +89,7 @@ export interface ActivityListItem extends BaseActivity {
     price?: number;
     next_event_start_at?: string;
     schedules: ActivityScheduleWithUsers[];
-    
+
     // Computed fields สำหรับ backward compatibility (เอาค่าจาก schedule แรก)
     max_users?: number;
     event_start_at?: string;
@@ -101,7 +102,7 @@ export interface ActivityDetail extends BaseActivity {
     price_range?: { min: number; max: number };
     price?: number;
     schedules: ActivityScheduleDetail[];
-    
+
     // Computed fields สำหรับ backward compatibility
     max_users?: number;
     event_start_at?: string;
@@ -169,11 +170,11 @@ export class ActivityService extends BaseService {
 
         // เพิ่ม metadata สำหรับ attachments (ชื่อไฟล์)
         if (data.attachments && data.attachments.length > 0) {
-            const attachmentsMetadata = data.attachments.map(file => ({
-                display_name: file.name
+            const attachmentsMetadata = data.attachments.map((file) => ({
+                display_name: file.name,
             }));
             formData.append("attachments_metadata", JSON.stringify(attachmentsMetadata));
-            
+
             data.attachments.forEach((file) => {
                 formData.append("attachments", file);
             });
@@ -200,8 +201,13 @@ export class ActivityService extends BaseService {
         return this.get<ActivityDetail>(`/${activityId}`);
     }
 
-    async updateRegistrationStatus(registrationId: string, status: "approved" | "rejected"): Promise<{ message: string }> {
-        return this.patch<{ message: string }>(`/registrations/${registrationId}/status`, { status });
+    async updateRegistrationStatus(
+        registrationId: string,
+        status: "approved" | "rejected"
+    ): Promise<{ message: string }> {
+        return this.patch<{ message: string }>(`/registrations/${registrationId}/status`, {
+            status,
+        });
     }
 
     async getFileUrl(fileId: string): Promise<{ url: string }> {
@@ -212,7 +218,10 @@ export class ActivityService extends BaseService {
         return this.get<EmailTemplate>(`/${activityId}/email-template`);
     }
 
-    async saveEmailTemplate(activityId: string, data: { subject: string; body: string; file?: File | null }): Promise<{ message: string }> {
+    async saveEmailTemplate(
+        activityId: string,
+        data: { subject: string; body: string; file?: File | null }
+    ): Promise<{ message: string }> {
         const formData = new FormData();
         formData.append("subject", data.subject);
         formData.append("body", data.body);
@@ -222,7 +231,12 @@ export class ActivityService extends BaseService {
         return this.putWithForm<{ message: string }>(`/${activityId}/email-template`, formData);
     }
 
-    async sendEmails(activityId: string, registrationIds: string[]): Promise<{ message: string; sent: number }> {
-        return this.post<{ message: string; sent: number }>(`/${activityId}/send-emails`, { registration_ids: registrationIds });
+    async sendEmails(
+        activityId: string,
+        registrationIds: string[]
+    ): Promise<{ message: string; sent: number }> {
+        return this.post<{ message: string; sent: number }>(`/${activityId}/send-emails`, {
+            registration_ids: registrationIds,
+        });
     }
 }

@@ -2,28 +2,23 @@
 
 import { AuthContext } from "@/contexts/AuthContext";
 import { api } from "@/services";
-import { User } from "@/types/user";
-import { ReactNode, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
+import useSWR from "swr";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
+    const {
+        data: user = null,
+        isLoading,
+        mutate,
+    } = useSWR("/api/auth/me", () => api.authService.getUser(), {
+        onError: () => router.push("/"),
+    });
 
     const refreshUser = async () => {
-        try {
-            const currentUser = await api.authService.getUser();
-
-            setUser(currentUser);
-        } catch (error: any) {
-            if (error?.status === 401) {
-                setUser(null);
-            } else {
-                console.error("Error refreshing user:", error);
-                setUser(null);
-            }
-        } finally {
-            setLoading(false);
-        }
+        mutate();
     };
 
     const login = async () => {
@@ -36,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             await api.authService.logout();
 
-            setUser(null);
+            refreshUser();
         } catch (error) {
             console.error("Error logging out:", error);
         }
@@ -47,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+        <AuthContext.Provider value={{ user, loading: isLoading, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
