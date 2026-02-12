@@ -74,6 +74,7 @@ export function MemberRegistrationTable({
     activityId,
     onEmailTemplateSaved,
 }: MemberRegistrationTableProps) {
+    console.log(registrants);
     const [searchInput, setSearchInput] = useState("");
     const [debouncedFilter, setDebouncedFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");

@@ -12,6 +12,7 @@ import { api } from "@/services";
 import type { ActivityDetail, RegisteredUser } from "@/services/api/ActivityService";
 
 const educationLevelMap: Record<number, string> = {
+    1: "ม. 1",
     2: "ม. 2",
     3: "ม. 3",
     4: "ม. 4",
