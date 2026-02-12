@@ -122,7 +122,7 @@ export function ActivityRegistrationModal({
     const [selectedProfileId, setSelectedProfileId] = useState<string | "new">("new");
 
     const prefixes = ["เด็กหญิง", "เด็กชาย", "นาย", "นางสาว"];
-    const educationLevels = ["ม. 2", "ม. 3", "ม. 4", "ม. 5", "ม. 6"];
+    const educationLevels = ["ม. 1","ม. 2", "ม. 3", "ม. 4", "ม. 5", "ม. 6"];
 
     const {
         control,
