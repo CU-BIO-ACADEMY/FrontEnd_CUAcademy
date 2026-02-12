@@ -212,8 +212,14 @@ export class ActivityService extends BaseService {
         return this.get<EmailTemplate>(`/${activityId}/email-template`);
     }
 
-    async saveEmailTemplate(activityId: string, data: { subject: string; body: string }): Promise<{ message: string }> {
-        return this.put<{ message: string }>(`/${activityId}/email-template`, data);
+    async saveEmailTemplate(activityId: string, data: { subject: string; body: string; file?: File | null }): Promise<{ message: string }> {
+        const formData = new FormData();
+        formData.append("subject", data.subject);
+        formData.append("body", data.body);
+        if (data.file) {
+            formData.append("file", data.file);
+        }
+        return this.putWithForm<{ message: string }>(`/${activityId}/email-template`, formData);
     }
 
     async sendEmails(activityId: string, registrationIds: string[]): Promise<{ message: string; sent: number }> {

@@ -10,6 +10,7 @@ import {
 } from "@heroui/react";
 import { GraduationCap, School, User, Mail, Calendar, Edit, Trash2, UtensilsCrossed, Phone } from "lucide-react";
 import type { Applicant } from "@/types/applicant";
+import { useRouter } from "next/navigation";
 
 interface ApplicantCardProps {
     applicant: Applicant;
@@ -18,14 +19,19 @@ interface ApplicantCardProps {
 }
 
 export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProps) {
+    const router = useRouter();
+    const hasActivities = applicant.activities && applicant.activities.length > 0;
+
     const getStatusColor = (status?: string) => {
         switch (status) {
             case "approved":
                 return "success";
+            case "pending":
+                return "warning";
             case "rejected":
                 return "danger";
             default:
-                return "warning";
+                return "default";
         }
     };
 
@@ -33,8 +39,8 @@ export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProp
         switch (status) {
             case "approved":
                 return "มีกิจกรรมแล้ว";
-            case "rejected":
-                return "ยังไม่มีกิจกรรม";
+            case "pending":
+                return "รอการอนุมัติ";
             default:
                 return "ยังไม่มีกิจกรรม";
         }
@@ -139,17 +145,36 @@ export function ApplicantCard({ applicant, onEdit, onDelete }: ApplicantCardProp
                         <p className="text-gray-900 text-sm">{applicant.createdAt}</p>
                     </div>
                 </div>
-                {status === "approved" && (
-                    <div className="w-full flex bg-pink-500/10 rounded-md ring ring-pink-300 p-4 items-center justify-between">
-                        <div>
-                            <p className=" text-sm">กิจกรรมที่รับ</p>
-                            <p className="text-xl w-40 line-clamp-1">{`awdwafgwad`}</p>
-                        </div>
-                        <div>
-                            <Button variant="shadow" color="secondary" size="md">ลายละเอียด</Button>
-                        </div>
+                {hasActivities && (
+                    <div className="flex flex-col gap-2">
+                        <p className="text-sm text-gray-500">กิจกรรมที่สมัคร</p>
+                        {applicant.activities!.filter(item => item.paymentStatus === "approved").map((act) => (
+                            <div
+                                key={act.activityId}
+                                className="w-full flex bg-pink-500/10 rounded-md ring ring-pink-300 p-4 items-center justify-between gap-3"
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-500">
+                                        {act.paymentStatus === "approved"
+                                            ? "อนุมัติแล้ว"
+                                            : act.paymentStatus === "pending"
+                                              ? "รอการอนุมัติ"
+                                              : "ปฏิเสธ"}
+                                    </p>
+                                    <p className="text-lg font-medium line-clamp-1">{act.activityTitle}</p>
+                                </div>
+                                <Button
+                                    variant="shadow"
+                                    color="secondary"
+                                    size="md"
+                                    onPress={() => router.push(`/activity/${act.activityId}`)}
+                                >
+                                    รายละเอียด
+                                </Button>
+                            </div>
+                        ))}
                     </div>
-                ) }
+                )}
             </CardBody>
 
             <CardFooter className="gap-2 px-5 pb-5">

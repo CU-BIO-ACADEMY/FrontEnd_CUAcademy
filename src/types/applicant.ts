@@ -1,3 +1,9 @@
+export interface ApplicantActivity {
+    activityId: string;
+    activityTitle: string;
+    paymentStatus: "pending" | "approved" | "rejected";
+}
+
 export interface Applicant {
     id: string;
     prefix: string;
@@ -10,7 +16,8 @@ export interface Applicant {
     backupEmail: string;
     createdAt: string;
     status?: "pending" | "approved" | "rejected";
-    parentTel: string
+    parentTel: string;
+    activities?: ApplicantActivity[];
 }
 
 export const educationLevelMap: Record<string, number> = {

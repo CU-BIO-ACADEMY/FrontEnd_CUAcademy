@@ -39,6 +39,14 @@ export class BaseService {
         });
     }
 
+    protected async putWithForm<T>(endpoint: string, data: FormData): Promise<T> {
+        const url = `${this.baseURL}${endpoint}`;
+        return await formApiFetch(url, {
+            method: "PUT",
+            body: data,
+        });
+    }
+
     protected async put<T>(endpoint: string, data: unknown): Promise<T> {
         const url = `${this.baseURL}${endpoint}`;
         return await normalApiFetch(url, {

@@ -178,15 +178,38 @@ export function MemberRegistrationTable({
     }, [approvedIds, onSendEmailAll]);
 
     const handleExportExcel = useCallback(() => {
-        const data = sortedRegistrants.map((r) => ({
+        const statusLabel: Record<string, string> = {
+            approved: "อนุมัติแล้ว",
+            pending: "รออนุมัติ",
+            rejected: "ปฏิเสธ",
+        };
+
+        const data = sortedRegistrants.map((r, i) => ({
+            "ลำดับ": i + 1,
             "ชื่อ-นามสกุล": r.full_name,
             "อีเมล": r.email,
             "โรงเรียน": r.school,
             "ระดับชั้น": r.education_level,
+            "วันที่มาทำกิจกรรม": r.event_dates
+                .map((d) => new Date(d).toLocaleDateString("th-TH"))
+                .join(", "),
             "วันที่สมัคร": new Date(r.registered_at).toLocaleDateString("th-TH"),
-            "สถานะ": r.status === "approved" ? "อนุมัติแล้ว" : "รออนุมัติ",
+            "จำนวนเงิน (บาท)": r.amount ?? 0,
+            "สถานะ": statusLabel[r.status] ?? r.status,
         }));
+
         const ws = XLSX.utils.json_to_sheet(data);
+
+        // Auto-fit column widths
+        const colWidths = Object.keys(data[0] ?? {}).map((key) => {
+            const maxLen = Math.max(
+                key.length,
+                ...data.map((row) => String(row[key as keyof typeof row] ?? "").length)
+            );
+            return { wch: maxLen + 2 };
+        });
+        ws["!cols"] = colWidths;
+
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "ผู้สมัคร");
         XLSX.writeFile(wb, "registrants.xlsx");
@@ -273,7 +296,7 @@ export function MemberRegistrationTable({
                                 </Button>
                             </span>
                         </Tooltip>
-                        <Tooltip content="ลบ" color="danger">
+                        {/*<Tooltip content="ลบ" color="danger">
                             <Button
                                 isIconOnly
                                 size="sm"
@@ -283,7 +306,7 @@ export function MemberRegistrationTable({
                             >
                                 <i className="fa-solid fa-trash" />
                             </Button>
-                        </Tooltip>
+                        </Tooltip>*/}
                         <Tooltip content="ดูสลิป">
                             <Button
                                 isIconOnly
@@ -351,7 +374,7 @@ export function MemberRegistrationTable({
                     <span className="text-default-400 text-small">
                         ทั้งหมด {filteredRegistrants.length} คน
                     </span>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                         <Button
                             size="sm"
                             variant="flat"

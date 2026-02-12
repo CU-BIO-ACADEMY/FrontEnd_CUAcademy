@@ -72,7 +72,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
         // Determine status - if all rejected = rejected, any approved = approved, else pending
         const hasApproved = student.statuses.some((s) => s === "approved");
         const hasPending = student.statuses.some((s) => s === "pending");
-        
+
         let status: "pending" | "approved" | "rejected";
         if (hasApproved) {
             status = "approved";
@@ -122,7 +122,7 @@ function AdminActivityDetail({ id }: { id: string }) {
     // Get first registration ID for a student (needed for API calls)
     const getRegistrationId = useCallback((registrantId: string): string | null => {
         if (!data) return null;
-        
+
         for (const schedule of data.schedules) {
             const user = schedule.registered_users.find((u) => u.id === registrantId);
             if (user) return user.id;
@@ -190,7 +190,7 @@ function AdminActivityDetail({ id }: { id: string }) {
     const approvedCount = registrants.filter((r) => r.status === "approved").length;
     const pendingCount = registrants.filter((r) => r.status === "pending").length;
     const rejectedCount = registrants.filter((r) => r.status === "rejected").length;
-    
+
     const totalCapacity = useMemo(() => {
         return data?.schedules.reduce((sum, s) => sum + s.max_users, 0) ?? 0;
     }, [data]);

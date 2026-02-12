@@ -24,7 +24,7 @@ const Navbar = () => {
                 initial={{ y:-20, opacity:0 }}
                 transition={{duration: 1.2, ease:"easeOut"}}
                 whileInView={{ y:0,opacity:1 }}
-                className={` flex w-full h-18 z-100 items-center px-4 md:px-8 justify-between`}
+                className={` flex w-full h-18 z-40 items-center px-4 md:px-8 justify-between`}
             >
                 <div className={` md:w-40 w-30 h-full flex items-center`}>
                     <Image onClick={() => router.push('/home')} src={`/logo/logo2.png`} alt={`logo`} width={`256`} height={'128'} className={`object-contain cursor-pointer`} />
@@ -84,7 +84,7 @@ const Navbar = () => {
             </motion.div>
             <div className={` ${openHam ? 'translate-y-0':'-translate-y-260'} origin-top absolute transition-all z-26 overflow-hidden duration-1000 w-full bg-pink-100 top-16 h-[calc(100dvh-4rem)]`}>
                 <div className={`${openHam ? 'opacity-100':'opacity-0'} transition-all delay-800 w-full px-10 py-10 flex flex-col gap-6 *:text-2xl`}>
-                    {Navlinks.filter(item => item.disable === false).map((item,index) => (
+                    {Navlinks.filter(item => item.disable === false).filter(item => user?.role === "admin" ? item : item.link !== "/admin").map((item,index) => (
                         item.dropdown.length > 0 ? (
                             <div key={index}>
                                 <p onClick={() => setOpenDropdown(openDropdown === index ? null : index)} className="cursor-pointer text-gray-600 hover:text-black transition-all select-none">

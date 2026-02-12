@@ -12,8 +12,9 @@ import { ApplicantCard } from "@/components/(main)/profile/ApplicantCard";
 import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { api } from "@/services";
-import { Applicant, educationLevelMap, educationLevelReverseMap } from "@/types/applicant";
+import { Applicant, ApplicantActivity, educationLevelMap, educationLevelReverseMap } from "@/types/applicant";
 import { toast } from "sonner";
+import type { ActivityListItem } from "@/services/api/ActivityService";
 
 function ProfileContainer() {
     const { user } = useAuth();
@@ -27,34 +28,78 @@ function ProfileContainer() {
     const [deletingApplicantId, setDeletingApplicantId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    const buildActivitiesMap = useCallback((activities: ActivityListItem[]) => {
+        // Map: student_information_id → list of activities they registered for
+        const map = new Map<string, ApplicantActivity[]>();
+        for (const activity of activities) {
+            for (const schedule of activity.schedules) {
+                for (const regUser of schedule.registered_users) {
+                    const studentId = regUser.student_information_id;
+                    const entry: ApplicantActivity = {
+                        activityId: activity.id,
+                        activityTitle: activity.title,
+                        paymentStatus: regUser.payment_status,
+                    };
+                    const existing = map.get(studentId);
+                    // Avoid duplicates (same activity from multiple schedules)
+                    if (existing) {
+                        if (!existing.some((e) => e.activityId === activity.id)) {
+                            existing.push(entry);
+                        }
+                    } else {
+                        map.set(studentId, [entry]);
+                    }
+                }
+            }
+        }
+        return map;
+    }, []);
+
     const fetchStudentInformation = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await api.studentInformationService.getAllStudentInformation();
-            const mappedApplicants: Applicant[] = data.map((item) => ({
-                id: item.id,
-                prefix: item.prefix,
-                studentName: item.full_name,
-                educationLevel: educationLevelReverseMap[item.education_level],
-                schoolName: item.school,
-                foodAllergy: item.food_allergies || undefined,
-                parentName: item.parent_name,
-                parentEmail: item.parent_email,
-                backupEmail: item.secondary_email || "",
-                createdAt: new Date(item.created_at).toLocaleDateString("th-TH", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                }),
-                parentTel: item.phone_number,
-            }));
+            const [data, activities] = await Promise.all([
+                api.studentInformationService.getAllStudentInformation(),
+                api.activityService.getAllActivities(),
+            ]);
+            const activitiesMap = buildActivitiesMap(activities);
+            const mappedApplicants: Applicant[] = data.map((item) => {
+                const studentActivities = activitiesMap.get(item.id) ?? [];
+                // Determine status: has any approved activity = approved, else check pending
+                const hasApproved = studentActivities.some((a) => a.paymentStatus === "approved");
+                const hasPending = studentActivities.some((a) => a.paymentStatus === "pending");
+                let status: "pending" | "approved" | "rejected" | undefined;
+                if (hasApproved) status = "approved";
+                else if (hasPending) status = "pending";
+                else if (studentActivities.length > 0) status = "rejected";
+
+                return {
+                    id: item.id,
+                    prefix: item.prefix,
+                    studentName: item.full_name,
+                    educationLevel: educationLevelReverseMap[item.education_level],
+                    schoolName: item.school,
+                    foodAllergy: item.food_allergies || undefined,
+                    parentName: item.parent_name,
+                    parentEmail: item.parent_email,
+                    backupEmail: item.secondary_email || "",
+                    createdAt: new Date(item.created_at).toLocaleDateString("th-TH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    }),
+                    parentTel: item.phone_number,
+                    status,
+                    activities: studentActivities,
+                };
+            });
             setApplicants(mappedApplicants);
         } catch {
             setApplicants([]);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [buildActivitiesMap]);
 
     useEffect(() => {
         fetchStudentInformation();

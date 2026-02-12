@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "@/services";
 import { toast } from "sonner";
 
@@ -36,6 +36,9 @@ interface FormatEmailModalProps extends UseDisclosureProps {
 
 export function FormatEmailModal(props: FormatEmailModalProps) {
     const [isSaving, setIsSaving] = useState(false);
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const {
         control,
         handleSubmit,
@@ -87,7 +90,35 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
 
     const handleClose = () => {
         reset();
+        setAttachedFiles([]);
         props.onClose?.();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            setAttachedFiles((prev) => [...prev, ...Array.from(files)]);
+        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            setAttachedFiles((prev) => [...prev, ...Array.from(files)]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
 
     return (
@@ -96,6 +127,7 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
             isOpen={props.isOpen}
             onOpenChange={props.onChange}
             scrollBehavior="inside"
+            placement="center"
         >
             <Form
                 className="w-full flex flex-col overflow-hidden"
@@ -142,6 +174,57 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
                                 />
                             )}
                         />
+
+                        {/* File attachment */}
+                        <div className="flex flex-col gap-1.5">
+                            <span className="text-sm text-foreground">ไฟล์แนบ (ไม่บังคับ)</span>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleFileChange}
+                            />
+                            <div
+                                className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 cursor-pointer transition-colors ${
+                                    isDragging
+                                        ? "border-primary bg-primary/5"
+                                        : "border-default-300 hover:border-primary hover:bg-default-50"
+                                }`}
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={handleDrop}
+                            >
+                                <i className="fa-solid fa-cloud-arrow-up text-2xl text-default-400" />
+                                <span className="text-sm text-default-500">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</span>
+                            </div>
+                            {attachedFiles.length > 0 && (
+                                <div className="flex flex-col gap-2 mt-1">
+                                    {attachedFiles.map((file, index) => (
+                                        <div
+                                            key={`${file.name}-${index}`}
+                                            className="flex items-center gap-3 rounded-lg border border-default-200 bg-default-50 px-4 py-2.5"
+                                        >
+                                            <i className="fa-solid fa-file text-primary text-base" />
+                                            <div className="flex flex-col flex-1 min-w-0">
+                                                <span className="text-sm font-medium truncate">{file.name}</span>
+                                                <span className="text-xs text-default-400">{formatFileSize(file.size)}</span>
+                                            </div>
+                                            <Button
+                                                isIconOnly
+                                                size="sm"
+                                                variant="light"
+                                                color="danger"
+                                                onPress={() => removeFile(index)}
+                                            >
+                                                <i className="fa-solid fa-xmark" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </ModalBody>
                     <ModalFooter>
                         <Button

@@ -91,5 +91,11 @@ export const Navlinks: NavLinkitem[] = [
         link:'/profile',
         disable: false,
         dropdown:[]
-    }
+    },
+    {
+        title: 'จัดการระบบ',
+        dropdown:[],
+        link:'/admin',
+        disable: false,
+    },
 ]
