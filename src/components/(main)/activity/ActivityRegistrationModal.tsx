@@ -929,7 +929,11 @@ export function ActivityRegistrationModal({
             onClose={handleClose}
             size="2xl"
             scrollBehavior="inside"
-            placement="center"
+            placement="auto"
+            classNames={{
+                base: "max-sm:my-2 max-sm:mx-2",
+                body: "max-sm:min-h-[40vh]",
+            }}
         >
             <ModalContent>
                 <ModalHeader className="flex items-center rounded-xl gap-3 bg-gradient-to-r from-blue-50 to-pink-50">
