@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { ActivityStats } from "@/components/(main)/profile/ActivityStats";
 import {
     MemberRegistrationTable,
@@ -98,9 +98,22 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
 };
 
 function AdminActivityDetail({ id }: { id: string }) {
+    const [formatEmail, setFormatEmail] = useState("");
+
     const { data, isLoading, mutate } = useSWR<ActivityDetail>(`/api/activities/${id}`, () =>
         api.activityService.getActivityById(id)
     );
+
+    useEffect(() => {
+        api.activityService
+            .getEmailTemplate(id)
+            .then((template) => setFormatEmail(template.subject))
+            .catch(() => setFormatEmail(""));
+    }, [id]);
+
+    const handleEmailTemplateSaved = useCallback((_subject: string, _body: string) => {
+        setFormatEmail(_subject);
+    }, []);
 
     const registrants = useMemo(() => {
         return transformToRegistrants(data);
@@ -149,17 +162,23 @@ function AdminActivityDetail({ id }: { id: string }) {
         }
     }, [getRegistrationId, mutate]);
 
-    const handleSendEmail = useCallback((registrantId: string) => {
-        const registrant = registrants.find((r) => r.id === registrantId);
-        if (registrant) {
-            toast.success(`ส่งอีเมลไปยัง ${registrant.email} สำเร็จ`);
+    const handleSendEmail = useCallback(async (registrantId: string) => {
+        try {
+            const result = await api.activityService.sendEmails(id, [registrantId]);
+            toast.success(result.message);
+        } catch {
+            toast.error("เกิดข้อผิดพลาดในการส่งอีเมล");
         }
-    }, [registrants]);
+    }, [id]);
 
-    const handleSendEmailAll = useCallback((ids: string[]) => {
-        const emails = registrants.filter((r) => ids.includes(r.id)).map((r) => r.email);
-        toast.success(`ส่งอีเมลไปยังผู้สมัครที่อนุมัติแล้วทั้งหมด ${emails.length} คน สำเร็จ`);
-    }, [registrants]);
+    const handleSendEmailAll = useCallback(async (ids: string[]) => {
+        try {
+            const result = await api.activityService.sendEmails(id, ids);
+            toast.success(result.message);
+        } catch {
+            toast.error("เกิดข้อผิดพลาดในการส่งอีเมล");
+        }
+    }, [id]);
 
     const handleDelete = useCallback((registrantId: string) => {
         // TODO: Call API to delete registration
@@ -212,7 +231,9 @@ function AdminActivityDetail({ id }: { id: string }) {
                     onSendEmail={handleSendEmail}
                     onSendEmailAll={handleSendEmailAll}
                     onDelete={handleDelete}
-                    formatEmail=""
+                    formatEmail={formatEmail}
+                    activityId={id}
+                    onEmailTemplateSaved={handleEmailTemplateSaved}
                 />
             </div>
         </div>

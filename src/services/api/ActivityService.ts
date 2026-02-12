@@ -134,6 +134,15 @@ export interface CreateActivityDTO {
     attachments?: File[];
 }
 
+export interface EmailTemplate {
+    id: string;
+    activity_id: string;
+    subject: string;
+    body: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export class ActivityService extends BaseService {
     constructor() {
         super("/activities");
@@ -197,5 +206,17 @@ export class ActivityService extends BaseService {
 
     async getFileUrl(fileId: string): Promise<{ url: string }> {
         return this.get<{ url: string }>(`/files/${fileId}/url`);
+    }
+
+    async getEmailTemplate(activityId: string): Promise<EmailTemplate> {
+        return this.get<EmailTemplate>(`/${activityId}/email-template`);
+    }
+
+    async saveEmailTemplate(activityId: string, data: { subject: string; body: string }): Promise<{ message: string }> {
+        return this.put<{ message: string }>(`/${activityId}/email-template`, data);
+    }
+
+    async sendEmails(activityId: string, registrationIds: string[]): Promise<{ message: string; sent: number }> {
+        return this.post<{ message: string; sent: number }>(`/${activityId}/send-emails`, { registration_ids: registrationIds });
     }
 }

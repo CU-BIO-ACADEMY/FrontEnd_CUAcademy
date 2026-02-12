@@ -14,7 +14,9 @@ import {
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { api } from "@/services";
+import { toast } from "sonner";
 
 const DEFAULT_SUBJECT = `เรื่อง แจ้งผลการสมัครอบรมโครงการ CU Bio Academy 2026`;
 
@@ -28,10 +30,12 @@ const formatEmailSchema = z.object({
 type FormatEmailFormData = z.infer<typeof formatEmailSchema>;
 
 interface FormatEmailModalProps extends UseDisclosureProps {
-    id: string;
+    activityId: string;
+    onSaved?: (subject: string, body: string) => void;
 }
 
 export function FormatEmailModal(props: FormatEmailModalProps) {
+    const [isSaving, setIsSaving] = useState(false);
     const {
         control,
         handleSubmit,
@@ -47,33 +51,38 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
 
     useEffect(() => {
         if (props.isOpen) {
-            reset({
-                subject: DEFAULT_SUBJECT,
-                body: DEFAULT_BODY,
-            });
+            api.activityService
+                .getEmailTemplate(props.activityId)
+                .then((template) => {
+                    reset({
+                        subject: template.subject,
+                        body: template.body,
+                    });
+                })
+                .catch(() => {
+                    reset({
+                        subject: DEFAULT_SUBJECT,
+                        body: DEFAULT_BODY,
+                    });
+                });
         }
-    }, [props.isOpen, reset]);
+    }, [props.isOpen, props.activityId, reset]);
 
-    /**
-     * Format placeholders:
-     *   {prefix} = คำนำหน้า (เด็กชาย, เด็กหญิง, นาย, นางสาว)
-     *   {name}   = ชื่อ-นามสกุลผู้สมัคร
-     *   {rank}   = ลำดับที่
-     *   {school} = ชื่อโรงเรียน
-     *   {date}   = วันที่จัดกิจกรรม
-     *   {money}  = จำนวนเงิน
-     *   {id}     = ลำดับที่ลงทะเบียน
-     *   {startTime}   = เวลาเริ่ม
-     *   {endTime}   = เวลาจบ
-     *   {email}  = อีเมลผู้ส่ง
-     */
-    const onSubmit = (data: FormatEmailFormData) => {
-        console.log("=== สร้างแม่แบบ Email ===");
-        console.log("หัวข้อ:", data.subject);
-        console.log("---");
-        console.log("เนื้อหา:", data.body);
-        console.log("=== สิ้นสุด ===");
-        props.onClose?.();
+    const onSubmit = async (data: FormatEmailFormData) => {
+        setIsSaving(true);
+        try {
+            await api.activityService.saveEmailTemplate(props.activityId, {
+                subject: data.subject,
+                body: data.body,
+            });
+            toast.success("บันทึกรูปแบบ Email สำเร็จ");
+            props.onSaved?.(data.subject, data.body);
+            props.onClose?.();
+        } catch {
+            toast.error("เกิดข้อผิดพลาดในการบันทึก");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleClose = () => {
@@ -148,6 +157,7 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
                             variant="shadow"
                             color="success"
                             className="text-white"
+                            isLoading={isSaving}
                         >
                             สร้างแม่แบบ
                         </Button>

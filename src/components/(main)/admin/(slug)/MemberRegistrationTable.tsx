@@ -43,6 +43,8 @@ interface MemberRegistrationTableProps {
     onSendEmailAll?: (ids: string[]) => void;
     onDelete?: (id: string) => void;
     formatEmail: string;
+    activityId: string;
+    onEmailTemplateSaved?: (subject: string, body: string) => void;
 }
 
 type StatusFilter = "all" | "approved" | "pending";
@@ -68,7 +70,9 @@ export function MemberRegistrationTable({
     onSendEmail,
     onSendEmailAll,
     onDelete,
-    formatEmail = ""
+    formatEmail = "",
+    activityId,
+    onEmailTemplateSaved,
 }: MemberRegistrationTableProps) {
     const [searchInput, setSearchInput] = useState("");
     const [debouncedFilter, setDebouncedFilter] = useState("");
@@ -464,7 +468,8 @@ export function MemberRegistrationTable({
                 isOpen={FormatModal.isOpen}
                 onClose={FormatModal.onClose}
                 onChange={FormatModal.onOpenChange}
-                id="awd"
+                activityId={activityId}
+                onSaved={onEmailTemplateSaved}
             />
             <SlipModal
                 isOpen={slipModal.isOpen}

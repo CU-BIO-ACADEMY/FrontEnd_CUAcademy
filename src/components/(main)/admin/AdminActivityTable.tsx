@@ -41,7 +41,11 @@ const columns = [
 
 const ROWS_PER_PAGE = 10;
 
-export function AdminActivityTable({ activities, isLoading = false, onApproveSuccess }: AdminActivityTableProps) {
+export function AdminActivityTable({
+    activities,
+    isLoading = false,
+    onApproveSuccess,
+}: AdminActivityTableProps) {
     const router = useRouter();
     const [filterValue, setFilterValue] = useState("");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -55,7 +59,9 @@ export function AdminActivityTable({ activities, isLoading = false, onApproveSuc
             toast.success("อนุมัติกิจกรรมสำเร็จ");
             onApproveSuccess?.();
         } catch (error: unknown) {
-            toast.error(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอนุมัติกิจกรรม");
+            toast.error(
+                error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการอนุมัติกิจกรรม"
+            );
         } finally {
             setApprovingId(null);
         }
@@ -113,9 +119,14 @@ export function AdminActivityTable({ activities, isLoading = false, onApproveSuc
             case "event_date":
                 return dayjs(activity.event_start_at).format("DD/MM/YYYY");
             case "participants":
-                return `${activity.users_registered}/${activity.max_users}`;
+                const max_users = activity.schedules.reduce(
+                    (total, schedule) => schedule.max_users + total,
+                    0
+                );
+
+                return `${activity.users_registered}/${max_users}`;
             case "price":
-                return `${activity.price} ฿`;
+                return `${activity.price_range?.min} ฿`;
             case "actions":
                 return (
                     <div className="flex gap-2">
@@ -158,7 +169,9 @@ export function AdminActivityTable({ activities, isLoading = false, onApproveSuc
                         onClear={() => onSearchChange("")}
                         onValueChange={onSearchChange}
                         variant="bordered"
-                        startContent={<i className="fa-solid fa-magnifying-glass text-default-400" />}
+                        startContent={
+                            <i className="fa-solid fa-magnifying-glass text-default-400" />
+                        }
                     />
                     <div className="flex gap-2 flex-wrap">
                         <Button
