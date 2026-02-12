@@ -33,8 +33,7 @@ function LoginContainer() {
                     {/* Logo or Icon */}
                     <div className="flex justify-center mb-8">
                         <Image
-                            onClick={() => router.push("/activity")}
-                            src={`/logo/logo2.png`}
+                            src={`/logo/logo3.png`}
                             alt={`logo`}
                             width={`256`}
                             height={"128"}

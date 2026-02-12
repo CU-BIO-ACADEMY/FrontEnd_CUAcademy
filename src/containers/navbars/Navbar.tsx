@@ -27,7 +27,7 @@ const Navbar = () => {
                 className={` flex w-full h-18 z-40 items-center px-4 md:px-8 justify-between`}
             >
                 <div className={` md:w-40 w-30 h-full flex items-center`}>
-                    <Image onClick={() => router.push('/home')} src={`/logo/logo2.png`} alt={`logo`} width={`256`} height={'128'} className={`object-contain cursor-pointer`} />
+                    <Image onClick={() => router.push('/home')} src={`/logo/logo3.png`} alt={`logo`} width={`256`} height={'128'} className={`object-contain cursor-pointer`} />
                 </div>
                 <div className={` md:flex hidden md:gap-8 lg:gap-16 text-sm`}>
                     {Navlinks.filter((item, index) => index < 4).map((item,index) => (
