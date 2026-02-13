@@ -3,12 +3,13 @@
 import { Card, CardBody, Button } from "@heroui/react";
 
 interface PdfViewerCardProps {
-    url: string;
+    url?: string;
     filename?: string;
-    preview?: boolean
+    preview?: boolean;
+    onDownload?: () => void;
 }
 
-export function PdfViewerCard({ url, filename = "รายชื่อผู้สมัคร.pdf", preview = false }: PdfViewerCardProps) {
+export function PdfViewerCard({ url, filename = "รายชื่อผู้สมัคร.pdf", preview = false, onDownload }: PdfViewerCardProps) {
     return (
         <Card className="w-full mt-3">
             <CardBody className="p-0 overflow-hidden">
@@ -20,31 +21,45 @@ export function PdfViewerCard({ url, filename = "รายชื่อผู้�
                         </span>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                        <Button
-                            as="a"
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="sm"
-                            variant="flat"
-                            startContent={<i className="fa-regular fa-arrow-up-right-from-square" />}
-                        >
-                            เปิดในแท็บใหม่
-                        </Button>
-                        <Button
-                            as="a"
-                            href={url}
-                            download={filename}
-                            size="sm"
-                            variant="flat"
-                            color="primary"
-                            startContent={<i className="fa-regular fa-download" />}
-                        >
-                            ดาวน์โหลด
-                        </Button>
+                        {url && (
+                            <Button
+                                as="a"
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                size="sm"
+                                variant="flat"
+                                startContent={<i className="fa-regular fa-arrow-up-right-from-square" />}
+                            >
+                                เปิดในแท็บใหม่
+                            </Button>
+                        )}
+                        {onDownload ? (
+                            <Button
+                                size="sm"
+                                variant="flat"
+                                color="primary"
+                                startContent={<i className="fa-regular fa-download" />}
+                                onPress={onDownload}
+                            >
+                                ดาวน์โหลด
+                            </Button>
+                        ) : url ? (
+                            <Button
+                                as="a"
+                                href={url}
+                                download={filename}
+                                size="sm"
+                                variant="flat"
+                                color="primary"
+                                startContent={<i className="fa-regular fa-download" />}
+                            >
+                                ดาวน์โหลด
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
-                {preview && (
+                {preview && url && (
                     <iframe
                         src={url}
                         title={filename}

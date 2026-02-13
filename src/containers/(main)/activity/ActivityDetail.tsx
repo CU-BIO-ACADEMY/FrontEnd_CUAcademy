@@ -1,11 +1,13 @@
 "use client";
 
+import { useCallback } from "react";
 import { Image, useDisclosure } from "@heroui/react";
 import { ActivityRegistrationModal } from "@/components/(main)/activity/ActivityRegistrationModal";
 import AvatarCard from "@/components/(main)/activity/slug/AvatarCard";
 import BodyCard from "@/components/(main)/activity/slug/BodyCard";
 import type { ActivityFile } from "@/components/(main)/activity/slug/BodyCard";
 import { PdfViewerCard } from "@/components/(main)/activity/slug/PdfViewerCard";
+import { downloadRegistrantsPdf } from "@/lib/generate-registrants-pdf";
 import { api } from "@/services";
 import useSWR from "swr";
 
@@ -19,6 +21,10 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
     );
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+
+    const handleDownloadPdf = useCallback(() => {
+        if (data) downloadRegistrantsPdf(data);
+    }, [data]);
 
     if (!data) return <div>กำลังโหลด</div>;
     const totalMaxUsers = data.schedules.reduce((sum, s) => sum + s.max_users, 0);
@@ -63,8 +69,8 @@ export const ActivityDetail = ({ id }: ActivityDetailProps) => {
                         <div className="mt-3">
                             <h3 className="text-lg font-semibold text-gray-800">รายชื่อผู้สมัคร</h3>
                             <PdfViewerCard
-                                url={`/api/activities/${id}/registrants.pdf`}
                                 filename="รายชื่อผู้สมัคร.pdf"
+                                onDownload={handleDownloadPdf}
                             />
                         </div>
                     </div>

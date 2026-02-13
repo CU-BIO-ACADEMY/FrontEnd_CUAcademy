@@ -70,6 +70,7 @@ interface ActivityRegistrationModalProps {
 }
 
 const educationLevelMap: Record<number, string> = {
+    1: "ม. 1",
     2: "ม. 2",
     3: "ม. 3",
     4: "ม. 4",
@@ -78,6 +79,7 @@ const educationLevelMap: Record<number, string> = {
 };
 
 const educationLevelToNumber: Record<string, number> = {
+    "ม. 1": 1,
     "ม. 2": 2,
     "ม. 3": 3,
     "ม. 4": 4,
@@ -292,8 +294,13 @@ export function ActivityRegistrationModal({
             onSuccess?.();
             onClose();
         } catch (error: unknown) {
-            const err = error as { message?: string };
-            toast.error(err.message || "เกิดข้อผิดพลาดในการสมัคร");
+            const err = error as { message?: string; response?: { errors?: Record<string, string[]> } };
+            if (err.response?.errors) {
+                const messages = Object.values(err.response.errors).flat().join(", ");
+                toast.error(messages || err.message || "เกิดข้อผิดพลาดในการสมัคร");
+            } else {
+                toast.error(err.message || "เกิดข้อผิดพลาดในการสมัคร");
+            }
         } finally {
             setIsSubmitting(false);
         }
