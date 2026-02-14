@@ -175,6 +175,26 @@ export function FormatEmailModal(props: FormatEmailModalProps) {
                             )}
                         />
 
+                        {/* Placeholder reference */}
+                        <div className="flex flex-col gap-1.5 rounded-lg border border-default-200 bg-default-50 px-4 py-3">
+                            <span className="text-sm font-medium text-foreground">
+                                <i className="fa-solid fa-circle-info text-primary mr-1.5" />
+                                ตัวแปรที่ใช้ได้ในเนื้อหา
+                            </span>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-default-600">
+                                <span><code className="text-primary">{"{prefix}"}</code> — คำนำหน้าชื่อ</span>
+                                <span><code className="text-primary">{"{name}"}</code> — ชื่อ-นามสกุล</span>
+                                <span><code className="text-primary">{"{rank}"}</code> — ระดับชั้น</span>
+                                <span><code className="text-primary">{"{school}"}</code> — โรงเรียน</span>
+                                <span><code className="text-primary">{"{date}"}</code> — วันที่จัดกิจกรรม</span>
+                                <span><code className="text-primary">{"{money}"}</code> — จำนวนเงิน</span>
+                                <span><code className="text-primary">{"{id}"}</code> — ลำดับที่ลงทะเบียน</span>
+                                <span><code className="text-primary">{"{startTime}"}</code> — เวลาเริ่ม</span>
+                                <span><code className="text-primary">{"{endTime}"}</code> — เวลาสิ้นสุด</span>
+                                <span><code className="text-primary">{"{email}"}</code> — อีเมลผู้ส่ง</span>
+                            </div>
+                        </div>
+
                         {/* File attachment */}
                         <div className="flex flex-col gap-1.5">
                             <span className="text-sm text-foreground">ไฟล์แนบ (ไม่บังคับ)</span>
