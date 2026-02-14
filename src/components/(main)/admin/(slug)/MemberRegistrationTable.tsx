@@ -33,6 +33,7 @@ export interface Registrant {
     slip_url?: string | null;
     amount?: number;
     food_allergies: string;
+    email_sent: boolean;
 }
 
 interface MemberRegistrationTableProps {
@@ -59,6 +60,7 @@ const columns = [
     { key: "event_dates", label: "วันที่มาทำกิจกรรม", sortable: false },
     { key: "registered_at", label: "วันที่สมัคร", sortable: true },
     { key: "status", label: "สถานะ", sortable: true },
+    { key: "email_sent", label: "ส่งอีเมล", sortable: true },
     { key: "actions", label: "การดำเนินการ", sortable: false },
 ];
 
@@ -199,6 +201,7 @@ export function MemberRegistrationTable({
             "วันที่สมัคร": new Date(r.registered_at).toLocaleDateString("th-TH"),
             "จำนวนเงิน (บาท)": r.amount ?? 0,
             "สถานะ": statusLabel[r.status] ?? r.status,
+            "ส่งอีเมล": r.email_sent ? "ส่งแล้ว" : "ยังไม่ส่ง",
         }));
 
         const ws = XLSX.utils.json_to_sheet(data);
@@ -256,6 +259,16 @@ export function MemberRegistrationTable({
                         size="sm"
                     >
                         {config.label}
+                    </Chip>
+                );
+            case "email_sent":
+                return (
+                    <Chip
+                        color={registrant.email_sent ? "success" : "default"}
+                        variant="flat"
+                        size="sm"
+                    >
+                        {registrant.email_sent ? "ส่งแล้ว" : "ยังไม่ส่ง"}
                     </Chip>
                 );
             case "actions":

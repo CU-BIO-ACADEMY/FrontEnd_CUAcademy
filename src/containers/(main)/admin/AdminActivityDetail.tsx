@@ -37,6 +37,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
             slip_url: string | null;
             total_amount: number;
             food_allergies: string;
+            email_sent: boolean;
         }
     >();
 
@@ -55,6 +56,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
                 existing.registrationIds.push(user.id);
                 existing.statuses.push(user.payment_status);
                 existing.total_amount += schedule.price;
+                if (user.email_sent) existing.email_sent = true;
             } else {
                 studentMap.set(studentId, {
                     registrationIds: [user.id],
@@ -68,6 +70,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
                     slip_url: user.payment_file_url,
                     total_amount: schedule.price,
                     food_allergies: user.student_info.food_allergies,
+                    email_sent: user.email_sent,
                 });
             }
         });
@@ -101,6 +104,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
             slip_url: student.slip_url,
             amount: student.total_amount,
             food_allergies: student.food_allergies,
+            email_sent: student.email_sent,
         };
     });
 };
