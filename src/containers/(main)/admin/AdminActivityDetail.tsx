@@ -23,19 +23,22 @@ const educationLevelMap: Record<number, string> = {
 const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] => {
     if (!data) return [];
 
-    const studentMap = new Map<string, {
-        registrationIds: string[];
-        full_name: string;
-        email: string;
-        school: string;
-        education_level: number;
-        registered_at: string;
-        event_dates: string[];
-        statuses: ("pending" | "approved" | "rejected")[];
-        slip_url: string | null;
-        total_amount: number;
-        food_allergies: string;
-    }>();
+    const studentMap = new Map<
+        string,
+        {
+            registrationIds: string[];
+            full_name: string;
+            email: string;
+            school: string;
+            education_level: number;
+            registered_at: string;
+            event_dates: string[];
+            statuses: ("pending" | "approved" | "rejected")[];
+            slip_url: string | null;
+            total_amount: number;
+            food_allergies: string;
+        }
+    >();
 
     data.schedules.forEach((schedule) => {
         schedule.registered_users.forEach((user: RegisteredUser) => {
@@ -64,7 +67,7 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
                     statuses: [user.payment_status],
                     slip_url: user.payment_file_url,
                     total_amount: schedule.price,
-                    food_allergies: user.student_info.food_allergies
+                    food_allergies: user.student_info.food_allergies,
                 });
             }
         });
@@ -90,13 +93,14 @@ const transformToRegistrants = (data: ActivityDetail | undefined): Registrant[] 
             full_name: student.full_name,
             email: student.email,
             school: student.school,
-            education_level: educationLevelMap[student.education_level] ?? `ม. ${student.education_level}`,
+            education_level:
+                educationLevelMap[student.education_level] ?? `ม. ${student.education_level}`,
             registered_at: student.registered_at,
             event_dates: student.event_dates,
             status,
             slip_url: student.slip_url,
             amount: student.total_amount,
-            food_allergies: student.food_allergies
+            food_allergies: student.food_allergies,
         };
     });
 };
@@ -124,71 +128,88 @@ function AdminActivityDetail({ id }: { id: string }) {
     }, [data]);
 
     // Get first registration ID for a student (needed for API calls)
-    const getRegistrationId = useCallback((registrantId: string): string | null => {
-        if (!data) return null;
+    const getRegistrationId = useCallback(
+        (registrantId: string): string | null => {
+            if (!data) return null;
 
-        for (const schedule of data.schedules) {
-            const user = schedule.registered_users.find((u) => u.id === registrantId);
-            if (user) return user.id;
-        }
-        return null;
-    }, [data]);
+            for (const schedule of data.schedules) {
+                const user = schedule.registered_users.find((u) => u.id === registrantId);
+                if (user) return user.id;
+            }
+            return null;
+        },
+        [data]
+    );
 
-    const handleConfirm = useCallback(async (registrantId: string) => {
-        const registrationId = getRegistrationId(registrantId);
-        if (!registrationId) {
-            toast.error("ไม่พบข้อมูลการลงทะเบียน");
-            return;
-        }
+    const handleConfirm = useCallback(
+        async (registrantId: string) => {
+            const registrationId = getRegistrationId(registrantId);
+            if (!registrationId) {
+                toast.error("ไม่พบข้อมูลการลงทะเบียน");
+                return;
+            }
 
-        try {
-            await api.activityService.updateRegistrationStatus(registrationId, "approved");
-            toast.success("อนุมัติผู้สมัครสำเร็จ");
-            mutate(); // Refresh data
-        } catch (error) {
-            toast.error("เกิดข้อผิดพลาดในการอนุมัติ");
-        }
-    }, [getRegistrationId, mutate]);
+            try {
+                await api.activityService.updateRegistrationStatus(registrationId, "approved");
+                toast.success("อนุมัติผู้สมัครสำเร็จ");
+                mutate(); // Refresh data
+            } catch (error) {
+                toast.error("เกิดข้อผิดพลาดในการอนุมัติ");
+            }
+        },
+        [getRegistrationId, mutate]
+    );
 
-    const handleReject = useCallback(async (registrantId: string) => {
-        const registrationId = getRegistrationId(registrantId);
-        if (!registrationId) {
-            toast.error("ไม่พบข้อมูลการลงทะเบียน");
-            return;
-        }
+    const handleReject = useCallback(
+        async (registrantId: string) => {
+            const registrationId = getRegistrationId(registrantId);
+            if (!registrationId) {
+                toast.error("ไม่พบข้อมูลการลงทะเบียน");
+                return;
+            }
 
-        try {
-            await api.activityService.updateRegistrationStatus(registrationId, "rejected");
-            toast.success("ปฏิเสธผู้สมัครสำเร็จ");
-            mutate(); // Refresh data
-        } catch (error) {
-            toast.error("เกิดข้อผิดพลาดในการปฏิเสธ");
-        }
-    }, [getRegistrationId, mutate]);
+            try {
+                await api.activityService.updateRegistrationStatus(registrationId, "rejected");
+                toast.success("ปฏิเสธผู้สมัครสำเร็จ");
+                mutate(); // Refresh data
+            } catch (error) {
+                toast.error("เกิดข้อผิดพลาดในการปฏิเสธ");
+            }
+        },
+        [getRegistrationId, mutate]
+    );
 
-    const handleSendEmail = useCallback(async (registrantId: string) => {
-        try {
-            const result = await api.activityService.sendEmails(id, [registrantId]);
-            toast.success(result.message);
-        } catch {
-            toast.error("เกิดข้อผิดพลาดในการส่งอีเมล");
-        }
-    }, [id]);
+    const handleSendEmail = useCallback(
+        async (registrantId: string) => {
+            toast.promise(api.activityService.sendEmails(id, [registrantId]), {
+                success: (result) => result.message,
+                loading: "กําลังส่งอีเมล...",
+                error: (error) =>
+                    error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการส่งอีเมล",
+            });
+        },
+        [id]
+    );
 
-    const handleSendEmailAll = useCallback(async (ids: string[]) => {
-        try {
-            const result = await api.activityService.sendEmails(id, ids);
-            toast.success(result.message);
-        } catch {
-            toast.error("เกิดข้อผิดพลาดในการส่งอีเมล");
-        }
-    }, [id]);
+    const handleSendEmailAll = useCallback(
+        async (ids: string[]) => {
+            toast.promise(api.activityService.sendEmails(id, ids), {
+                success: (result) => result.message,
+                loading: "กําลังส่งอีเมล...",
+                error: (error) =>
+                    error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการส่งอีเมล",
+            });
+        },
+        [id]
+    );
 
-    const handleDelete = useCallback((registrantId: string) => {
-        // TODO: Call API to delete registration
-        toast.success("ลบผู้สมัครสำเร็จ");
-        mutate();
-    }, [mutate]);
+    const handleDelete = useCallback(
+        (registrantId: string) => {
+            toast.success("ลบผู้สมัครสำเร็จ");
+            mutate();
+        },
+        [mutate]
+    );
 
     // Calculate stats
     const approvedCount = registrants.filter((r) => r.status === "approved").length;

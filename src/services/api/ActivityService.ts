@@ -25,6 +25,7 @@ export interface RegisteredUser {
     payment_status: "pending" | "approved" | "rejected";
     payment_file_id: string | null;
     payment_file_url: string | null;
+    email_sent: boolean;
     created_at: string;
     student_info: StudentInfo | null;
     user: User | null;
